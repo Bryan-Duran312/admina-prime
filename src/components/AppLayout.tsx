@@ -69,6 +69,9 @@ export function AppLayout({ children, title, subtitle }: { children: ReactNode; 
                 className="h-9 w-64 rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </div>
+            <button onClick={toggleTheme} className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-input hover:bg-accent transition-colors" title={theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}>
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
             <button className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-input hover:bg-accent">
               <Bell className="h-4 w-4" />
               <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-destructive" />
