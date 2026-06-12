@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, GraduationCap, Wallet, DatabaseBackup, Settings, LogOut, GraduationCap as Logo, Bell, Search } from "lucide-react";
+import { Home, GraduationCap, Wallet, DatabaseBackup, Settings, LogOut, GraduationCap as Logo, Bell, Search, Sun, Moon } from "lucide-react";
 import type { ReactNode } from "react";
+import { useTheme } from "@/hooks/use-theme";
 
 const nav = [
   { to: "/dashboard", label: "Inicio", icon: Home },
