@@ -13,6 +13,7 @@ const nav = [
 
 export function AppLayout({ children, title, subtitle }: { children: ReactNode; title: string; subtitle?: string }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { theme, toggleTheme } = useTheme();
   return (
     <div className="flex min-h-screen w-full bg-background">
       <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
