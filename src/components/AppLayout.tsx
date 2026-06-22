@@ -17,6 +17,13 @@ export function AppLayout({ children, title, subtitle, navItems }: { children: R
   const nav = navItems ?? defaultNav;
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    try {
+      sessionStorage.removeItem("sgaf_role");
+    } catch {}
+    navigate({ to: "/" });
+  };
   return (
     <div className="flex min-h-screen w-full bg-background">
       <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
