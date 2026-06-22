@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { GraduationCap, Lock, User, ChevronDown, ShieldCheck } from "lucide-react";
+import { GraduationCap, Lock, User, ChevronDown, ShieldCheck, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/")({
@@ -15,6 +15,25 @@ export const Route = createFileRoute("/")({
 function LoginPage() {
   const navigate = useNavigate();
   const [role, setRole] = useState("Administrador");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loading) return;
+    setLoading(true);
+    const roleMap: Record<string, "teacher" | "admin" | "rector"> = {
+      Profesor: "teacher",
+      Administrador: "admin",
+      Rector: "rector",
+    };
+    const target = roleMap[role] ?? "admin";
+    setTimeout(() => {
+      try {
+        sessionStorage.setItem("sgaf_role", target);
+      } catch {}
+      navigate({ to: "/dashboard" });
+    }, 1000);
+  };
 
   return (
     <div className="min-h-screen w-full grid lg:grid-cols-2 bg-background">
@@ -77,13 +96,7 @@ function LoginPage() {
             Ingresa tus credenciales para acceder al panel.
           </p>
 
-          <form
-            className="mt-8 space-y-5"
-            onSubmit={(e) => {
-              e.preventDefault();
-              navigate({ to: "/dashboard" });
-            }}
-          >
+          <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground">ROL</label>
               <div className="relative">
@@ -94,6 +107,7 @@ function LoginPage() {
                 >
                   <option>Administrador</option>
                   <option>Profesor</option>
+                  <option>Rector</option>
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               </div>
@@ -105,6 +119,7 @@ function LoginPage() {
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
                   type="text"
+                  defaultValue="usuario@colegio.edu"
                   placeholder="usuario@colegio.edu"
                   className="h-11 w-full rounded-lg border border-input bg-card pl-9 pr-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
                 />
@@ -117,6 +132,7 @@ function LoginPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
                   type="password"
+                  defaultValue="demo1234"
                   placeholder="••••••••"
                   className="h-11 w-full rounded-lg border border-input bg-card pl-9 pr-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
                 />
@@ -135,9 +151,17 @@ function LoginPage() {
 
             <button
               type="submit"
-              className="h-11 w-full rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm"
+              disabled={loading}
+              className="h-11 w-full rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm inline-flex items-center justify-center gap-2 disabled:opacity-80 disabled:cursor-not-allowed"
             >
-              Iniciar sesión
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Ingresando...
+                </>
+              ) : (
+                "Iniciar sesión"
+              )}
             </button>
 
             <p className="text-center text-xs text-muted-foreground">

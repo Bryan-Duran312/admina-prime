@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Home, GraduationCap, Wallet, DatabaseBackup, Settings, LogOut, GraduationCap as Logo, Bell, Search, Sun, Moon } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
 import { useTheme } from "@/hooks/use-theme";
@@ -17,6 +17,13 @@ export function AppLayout({ children, title, subtitle, navItems }: { children: R
   const nav = navItems ?? defaultNav;
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    try {
+      sessionStorage.removeItem("sgaf_role");
+    } catch {}
+    navigate({ to: "/" });
+  };
   return (
     <div className="flex min-h-screen w-full bg-background">
       <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
@@ -51,10 +58,14 @@ export function AppLayout({ children, title, subtitle, navItems }: { children: R
           })}
         </nav>
         <div className="border-t border-sidebar-border p-3">
-          <Link to="/" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-sidebar-accent/60">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-sidebar-accent/60"
+          >
             <LogOut className="h-4 w-4" />
             Cerrar sesión
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -87,6 +98,14 @@ export function AppLayout({ children, title, subtitle, navItems }: { children: R
                 <div className="text-xs font-semibold">Ana Domínguez</div>
                 <div className="text-[10px] text-muted-foreground">Administrador</div>
               </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                title="Cerrar sesión"
+                className="ml-1 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+              </button>
             </div>
           </div>
         </header>
