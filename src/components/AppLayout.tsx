@@ -1,9 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, GraduationCap, Wallet, DatabaseBackup, Settings, LogOut, GraduationCap as Logo, Bell, Search, Sun, Moon } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 import { useTheme } from "@/hooks/use-theme";
 
-const nav = [
+type NavItem = { to: string; label: string; icon: ComponentType<{ className?: string }> };
+
+const defaultNav: NavItem[] = [
   { to: "/dashboard", label: "Inicio", icon: Home },
   { to: "/notas", label: "Notas", icon: GraduationCap },
   { to: "/pagos", label: "Pagos", icon: Wallet },
@@ -11,7 +13,8 @@ const nav = [
   { to: "/configuracion", label: "Configuración", icon: Settings },
 ];
 
-export function AppLayout({ children, title, subtitle }: { children: ReactNode; title: string; subtitle?: string }) {
+export function AppLayout({ children, title, subtitle, navItems }: { children: ReactNode; title: string; subtitle?: string; navItems?: NavItem[] }) {
+  const nav = navItems ?? defaultNav;
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { theme, toggleTheme } = useTheme();
   return (
