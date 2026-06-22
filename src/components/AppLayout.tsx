@@ -36,7 +36,7 @@ export function AppLayout({ children, title, subtitle, navItems }: { children: R
             return (
               <Link
                 key={item.to}
-                to={item.to}
+                to={item.to as any}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   active
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
