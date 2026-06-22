@@ -44,7 +44,7 @@ function DashboardRoute() {
             return (
               <button
                 key={r.id}
-                onClick={() => setRole(r.id)}
+                onClick={() => updateRole(r.id)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1 font-semibold transition-colors ${
                   active
                     ? "bg-primary text-primary-foreground"
