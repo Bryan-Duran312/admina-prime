@@ -15,6 +15,25 @@ export const Route = createFileRoute("/")({
 function LoginPage() {
   const navigate = useNavigate();
   const [role, setRole] = useState("Administrador");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loading) return;
+    setLoading(true);
+    const roleMap: Record<string, "teacher" | "admin" | "rector"> = {
+      Profesor: "teacher",
+      Administrador: "admin",
+      Rector: "rector",
+    };
+    const target = roleMap[role] ?? "admin";
+    setTimeout(() => {
+      try {
+        sessionStorage.setItem("sgaf_role", target);
+      } catch {}
+      navigate({ to: "/dashboard" });
+    }, 1000);
+  };
 
   return (
     <div className="min-h-screen w-full grid lg:grid-cols-2 bg-background">
