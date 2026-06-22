@@ -2,46 +2,53 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { AdminDashboard } from "@/components/AdminDashboard";
-import { Users, TrendingUp, ShieldCheck, ArrowUpRight, GraduationCap, Wallet, DatabaseBackup, Activity, UserCog } from "lucide-react";
+import { RectorDashboard } from "@/components/RectorDashboard";
+import { Users, TrendingUp, ShieldCheck, ArrowUpRight, GraduationCap, Wallet, DatabaseBackup, Activity, UserCog, Crown } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [{ title: "Tablero — SGAF" }] }),
   component: DashboardRoute,
 });
 
+type Role = "teacher" | "admin" | "rector";
+
 function DashboardRoute() {
-  const [role, setRole] = useState<"teacher" | "admin">("teacher");
+  const [role, setRole] = useState<Role>("teacher");
+  const roles: { id: Role; label: string; icon: any }[] = [
+    { id: "teacher", label: "Profesor", icon: GraduationCap },
+    { id: "admin", label: "Administrador", icon: UserCog },
+    { id: "rector", label: "Rector", icon: Crown },
+  ];
   return (
     <div className="relative">
       {/* Selector temporal de rol (solo para pruebas) */}
-      <div className="sticky top-0 z-40 flex items-center justify-center gap-3 border-b border-amber-300/60 bg-amber-50 px-4 py-2 text-xs dark:border-amber-900/60 dark:bg-amber-950/40">
+      <div className="sticky top-0 z-40 flex flex-wrap items-center justify-center gap-3 border-b border-amber-300/60 bg-amber-50 px-4 py-2 text-xs dark:border-amber-900/60 dark:bg-amber-950/40">
         <span className="font-semibold text-amber-900 dark:text-amber-200">
           Vista de prueba:
         </span>
         <div className="inline-flex overflow-hidden rounded-lg border border-amber-300 dark:border-amber-800">
-          <button
-            onClick={() => setRole("teacher")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1 font-semibold transition-colors ${
-              role === "teacher"
-                ? "bg-primary text-primary-foreground"
-                : "bg-transparent text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40"
-            }`}
-          >
-            <GraduationCap className="h-3.5 w-3.5" /> Profesor
-          </button>
-          <button
-            onClick={() => setRole("admin")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1 font-semibold transition-colors ${
-              role === "admin"
-                ? "bg-primary text-primary-foreground"
-                : "bg-transparent text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40"
-            }`}
-          >
-            <UserCog className="h-3.5 w-3.5" /> Administrador
-          </button>
+          {roles.map((r) => {
+            const Icon = r.icon;
+            const active = role === r.id;
+            return (
+              <button
+                key={r.id}
+                onClick={() => setRole(r.id)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 font-semibold transition-colors ${
+                  active
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-transparent text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" /> {r.label}
+              </button>
+            );
+          })}
         </div>
       </div>
-      {role === "teacher" ? <Dashboard /> : <AdminDashboard />}
+      {role === "teacher" && <Dashboard />}
+      {role === "admin" && <AdminDashboard />}
+      {role === "rector" && <RectorDashboard />}
     </div>
   );
 }
