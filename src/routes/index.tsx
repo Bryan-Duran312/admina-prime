@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { GraduationCap, Lock, User, ChevronDown, ShieldCheck } from "lucide-react";
+import { GraduationCap, Lock, User, ChevronDown, ShieldCheck, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/")({
