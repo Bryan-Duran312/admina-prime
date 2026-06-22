@@ -13,7 +13,18 @@ export const Route = createFileRoute("/dashboard")({
 type Role = "teacher" | "admin" | "rector";
 
 function DashboardRoute() {
-  const [role, setRole] = useState<Role>("teacher");
+  const [role, setRole] = useState<Role>(() => {
+    if (typeof window === "undefined") return "teacher";
+    const stored = window.sessionStorage.getItem("sgaf_role");
+    if (stored === "teacher" || stored === "admin" || stored === "rector") return stored;
+    return "teacher";
+  });
+  const updateRole = (r: Role) => {
+    setRole(r);
+    try {
+      sessionStorage.setItem("sgaf_role", r);
+    } catch {}
+  };
   const roles: { id: Role; label: string; icon: any }[] = [
     { id: "teacher", label: "Profesor", icon: GraduationCap },
     { id: "admin", label: "Administrador", icon: UserCog },
