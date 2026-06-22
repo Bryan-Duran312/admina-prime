@@ -98,6 +98,14 @@ export function AppLayout({ children, title, subtitle, navItems }: { children: R
                 <div className="text-xs font-semibold">Ana Domínguez</div>
                 <div className="text-[10px] text-muted-foreground">Administrador</div>
               </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                title="Cerrar sesión"
+                className="ml-1 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+              </button>
             </div>
           </div>
         </header>
