@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>SGAF - Reportes de Dirección</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 30px; }
+        .container { max-width: 1000px; margin: auto; }
+        .btn-back { display: inline-block; margin-bottom: 20px; color: #1e3c72; text-decoration: none; font-weight: bold; }
+        
+        /* KPI Card */
+        .kpi-card {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin-bottom: 30px;
+        }
+        .kpi-card h3 { margin: 0 0 10px 0; font-size: 16px; opacity: 0.9; }
+        .kpi-card .amount { font-size: 32px; font-weight: bold; margin: 0; }
+
+        /* Tables */
+        .section-box { background: white; padding: 25px; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .section-box h3 { color: #1e3c72; margin-top: 0; border-bottom: 2px solid #f4f6f9; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+        th { background-color: #f8f9fa; color: #1e3c72; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="{% url 'panel_inicio' %}" class="btn-back">← Volver al Panel</a>
+        <h1 style="color: #1e3c72; margin-top: 0;">📊 Reportes de Dirección y Auditoría</h1>
+
+        <div class="kpi-card">
+            <h3>TOTAL RECAUDADO EN CAJA</h3>
+            <p class="amount">$ {{ total_recaudado }} COP</p>
+        </div>
+
+        <div class="section-box">
+            <h3>💵 Últimos Pagos Registrados</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Estudiante</th>
+                        <th>Monto</th>
+                        <th>Método</th>
+                        <th>Fecha</th>
+                        <th>Registrado Por</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pago in ultimos_pagos %}
+                    <tr>
+                        <td>{{ pago.estudiante.nombre }} {{ pago.estudiante.apellido }}</td>
+                        <td><strong>${{ pago.monto }}</strong></td>
+                        <td>{{ pago.metodo_pago }}</td>
+                        <td>{{ pago.fecha_pago|date:"d/m/Y H:i" }}</td>
+                        <td>{{ pago.registrado_por.username }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5">No hay pagos registrados aún.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-box">
+            <h3>📝 Últimas Calificaciones Subidas</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Estudiante</th>
+                        <th>Materia</th>
+                        <th>Nota</th>
+                        <th>Fecha</th>
+                        <th>Profesor</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for nota in ultimas_notas %}
+                    <tr>
+                        <td>{{ nota.estudiante.nombre }} {{ nota.estudiante.apellido }}</td>
+                        <td>{{ nota.materia }}</td>
+                        <td><strong>{{ nota.valor_nota }}</strong></td>
+                        <td>{{ nota.fecha_registro|date:"d/m/Y H:i" }}</td>
+                        <td>{{ nota.profesor_que_registro.username }}</td>
+                        <td><a href="{% url 'editar_nota' nota.id %}" style="color: #e67e22; font-weight: bold; text-decoration: none;">✏️ Corregir</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5">No hay notas registradas aún.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-box" style="border-top: 4px solid #8e44ad;">
+            <h3>🛡️ Bitácora de Modificaciones (Auditoría)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Usuario</th>
+                        <th>Valor Anterior</th>
+                        <th>Valor Nuevo</th>
+                        <th>Justificación / Motivo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cambio in historial_cambios %}
+                    <tr>
+                        <td>{{ cambio.fecha_modificacion|date:"d/m/Y H:i" }}</td>
+                        <td><strong>{{ cambio.usuario_que_modifico.username }}</strong></td>
+                        <td style="color: #c0392b;">{{ cambio.valor_anterior }}</td>
+                        <td style="color: #27ae60;">{{ cambio.valor_nuevo }}</td>
+                        <td><em>"{{ cambio.justificacion }}"</em></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5">No se han realizado correcciones aún.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div id="bitacora" class="section-box" style="border-top: 4px solid #8e44ad;">
+        <h3>🛡️ Bitácora de Modificaciones (Auditoría)</h3>
+
+    </div>
+
+    
+
+</body>
+</html>
