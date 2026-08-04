@@ -1,6 +1,7 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import Sum
+from datetime import datetime
 from .models import Estudiante, Pago, Nota, HistorialModificacion
 
 def vista_login(request):
@@ -64,8 +65,11 @@ def vista_registrar_pago(request):
     })
 
 def vista_registrar_nota(request):
-    if not request.user.is_authenticated:
-        return redirect('login')
+    # Restricción: Solo docentes pueden ingresar notas
+    if request.user.perfil.rol != 'PROFESOR':
+        return render(request, 'gestion_colegio/error_permiso.html', {
+            'mensaje': 'Acceso denegado. La gestión de notas es exclusiva del personal docente.'
+        })
 
     mensaje = None
     error = None
@@ -188,4 +192,20 @@ def vista_gestion_estudiantes(request):
         'estudiantes': estudiantes,
         'mensaje': mensaje,
         'error': error
+    })
+
+def vista_certificado_paz_y_salvo(request, estudiante_id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    if request.user.perfil.rol not in ['ADMINISTRADOR', 'DIRECTOR'] and not request.user.is_superuser:
+        return redirect('panel_inicio')
+
+    estudiante = get_object_or_404(Estudiante, id=estudiante_id)
+    fecha_actual = datetime.now().strftime("%d de %B de %Y")
+
+    return render(request, 'gestion_colegio/certificado_paz_y_salvo.html', {
+        'estudiante': estudiante,
+        'fecha': fecha_actual,
+        'emisor': request.user.get_full_name() or request.user.username
     })

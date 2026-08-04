@@ -9,4 +9,5 @@ urlpatterns = [
     path('reportes/', views.vista_reportes_director, name='reportes_director'),
     path('editar-nota/<int:nota_id>/', views.vista_editar_nota, name='editar_nota'),
     path('estudiantes/', views.vista_gestion_estudiantes, name='gestion_estudiantes'),
+    path('estudiantes/<int:estudiante_id>/paz-y-salvo/', views.vista_certificado_paz_y_salvo, name='certificado_paz_y_salvo'),
 ]

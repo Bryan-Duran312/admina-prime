@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Paz y Salvo - {{ estudiante.nombre }} {{ estudiante.apellido }}</title>
+    <style>
+        body { font-family: 'Georgia', serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
+        .certificate-container { background: white; max-width: 800px; margin: auto; padding: 50px; border: 10px double #1e3c72; border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; }
+        .header { text-align: center; border-bottom: 2px solid #1e3c72; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { margin: 0; color: #1e3c72; font-size: 28px; text-transform: uppercase; letter-spacing: 1px; }
+        .header p { margin: 5px 0 0; color: #555; font-size: 14px; font-style: italic; }
+        .title { text-align: center; margin: 30px 0; }
+        .title h2 { color: #1e3c72; text-transform: uppercase; font-size: 22px; text-decoration: underline; letter-spacing: 2px; }
+        .content { font-size: 16px; line-height: 1.8; color: #222; text-align: justify; margin-bottom: 50px; }
+        .signatures { display: flex; justify-content: space-around; margin-top: 80px; text-align: center; }
+        .line { border-top: 1px solid #333; width: 200px; margin: auto; margin-bottom: 8px; }
+        .actions { text-align: center; margin-bottom: 20px; }
+        .btn-print { background-color: #1e3c72; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-size: 15px; cursor: pointer; font-weight: bold; }
+        .btn-print:hover { background-color: #162d55; }
+        .btn-back { display: inline-block; margin-right: 15px; color: #555; text-decoration: none; font-weight: bold; }
+
+        /* Estilos exclusivos para la impresión / PDF */
+        @media print {
+            .actions { display: none; }
+            body { background: white; padding: 0; }
+            .certificate-container { box-shadow: none; border: 8px double #1e3c72; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="actions">
+        <a href="{% url 'gestion_estudiantes' %}" class="btn-back">← Volver a Estudiantes</a>
+        <button onclick="window.print()" class="btn-print">🖨️ Imprimir / Guardar en PDF</button>
+    </div>
+
+    <div class="certificate-container">
+        <div class="header">
+            <h1>INSTITUCIÓN EDUCATIVA SGAF</h1>
+            <p>Sistema de Gestión Académica y Financiera</p>
+            <p>Aprobación Oficial de Secretaría de Educación</p>
+        </div>
+
+        <div class="title">
+            <h2>CERTIFICADO DE PAZ Y SALVO</h2>
+        </div>
+
+        <div class="content">
+            <p>La Administración del colegio <strong>INSTITUCIÓN EDUCATIVA SGAF</strong> hace constar que el/la estudiante:</p>
+            <p style="text-align: center; font-size: 20px; font-weight: bold; color: #1e3c72; margin: 25px 0;">
+                {{ estudiante.nombre|upper }} {{ estudiante.apellido|upper }}
+            </p>
+            <p>Identificado(a) con ID N° <strong>#{{ estudiante.id }}</strong> y matriculado(a) en el grado <strong>{{ estudiante.grado }}</strong>, se encuentra a la fecha <strong>EN TOTAL PAZ Y SALVO</strong> por todo concepto financiero (matrículas, pensiones, certificaciones y cobros administrativos) con nuestra institución.</p>
+            <p>Se expide la presente certificación a solicitud del interesado el día <strong>{{ fecha }}</strong>.</p>
+        </div>
+
+        <div class="signatures">
+            <div>
+                <div class="line"></div>
+                <strong>{{ emisor }}</strong><br>
+                <span>Secretaría / Administración</span>
+            </div>
+            <div>
+                <div class="line"></div>
+                <strong>Rectoría General</strong><br>
+                <span>Dirección Institucional</span>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

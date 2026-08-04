@@ -100,7 +100,7 @@
         </div>
         {% endif %}
 
-        {% if request.user.perfil.rol == 'PROFESOR' or request.user.is_superuser %}
+        {% if request.user.perfil.rol == 'PROFESOR' %}
         <div class="card docente">
             <h3>📝 Gestión de Notas</h3>
             <p>Ingrese las calificaciones periódicas, talleres y evaluaciones correspondientes a su asignatura.</p>
