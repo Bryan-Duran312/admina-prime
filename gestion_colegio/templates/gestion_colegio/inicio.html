@@ -5,13 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SGAF - Panel Principal</title>
     <style>
+        :root {
+            color-scheme: light;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-primary: #1e3c72;
+            --text-secondary: #333333;
+            --border-color: #e0e0e0;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --navbar-bg: #1e3c72;
+            --navbar-text: #ffffff;
+            --btn-bg: #1e3c72;
+            --btn-hover-bg: #2a5298;
+        }
+        [data-theme="dark"] {
+            color-scheme: dark;
+            --bg-color: #121824;
+            --card-bg: #1e293b;
+            --text-primary: #60a5fa;
+            --text-secondary: #f1f5f9;
+            --border-color: #334155;
+            --shadow-color: rgba(0, 0, 0, 0.4);
+            --navbar-bg: #0f172a;
+            --navbar-text: #f8fafc;
+            --btn-bg: #1d4ed8;
+            --btn-hover-bg: #2563eb;
+        }
+
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { margin: 0; background-color: #f4f6f9; color: #333; }
-        
-        /* Navbar */
+        body { margin: 0; background-color: var(--bg-color); color: var(--text-secondary); }
         .navbar {
-            background-color: #1e3c72;
-            color: white;
+            background-color: var(--navbar-bg);
+            color: var(--navbar-text);
             padding: 15px 30px;
             display: flex;
             justify-content: space-between;
@@ -19,6 +44,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .navbar h2 { margin: 0; font-size: 20px; }
+        .navbar-actions { display: flex; align-items: center; gap: 12px; }
         .user-info { font-size: 14px; }
         .badge {
             background-color: #2a5298;
@@ -28,10 +54,21 @@
             font-weight: bold;
             margin-left: 8px;
         }
+        .theme-toggle-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 999px;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            font-weight: bold;
+        }
+        .theme-toggle-btn:hover { background-color: rgba(255,255,255,0.08); transform: translateY(-1px); }
 
         /* Dashboard Container */
         .container { padding: 40px; max-width: 1200px; margin: auto; }
-        .welcome-title { margin-bottom: 30px; color: #1e3c72; }
+        .welcome-title { margin-bottom: 30px; color: var(--text-primary); }
 
         /* Grid de Módulos */
         .grid {
@@ -40,28 +77,29 @@
             gap: 20px;
         }
         .card {
-            background: white;
+            background: var(--card-bg);
             padding: 25px;
             border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px var(--shadow-color);
+            border: 1px solid var(--border-color);
             border-top: 4px solid #1e3c72;
             transition: transform 0.2s, box-shadow 0.2s;
         }
         .card:hover { transform: translateY(-5px); box-shadow: 0 8px 18px rgba(0,0,0,0.1); }
-        .card h3 { margin-top: 0; color: #1e3c72; }
-        .card p { color: #666; font-size: 14px; line-height: 1.5; }
+        .card h3 { margin-top: 0; color: var(--text-primary); }
+        .card p { color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
         .btn-card {
             display: inline-block;
             margin-top: 15px;
             padding: 10px 18px;
-            background-color: #1e3c72;
+            background-color: var(--btn-bg);
             color: white;
             text-decoration: none;
             border-radius: 6px;
             font-weight: bold;
             font-size: 14px;
         }
-        .btn-card:hover { background-color: #2a5298; }
+        .btn-card:hover { background-color: var(--btn-hover-bg); }
 
         /* Estilos especiales por rol */
         .card.admin { border-top-color: #27ae60; }
@@ -73,14 +111,17 @@
 
     <div class="navbar">
         <h2>SGAF - Sistema de Gestión</h2>
-        <div class="user-info">
-            👤 {{ request.user.username }} 
-            {% if request.user.perfil %}
-                <span class="badge">{{ request.user.perfil.rol }}</span>
-            {% else %}
-                <span class="badge">SUPERUSUARIO</span>
-            {% endif %}
-            <a href="{% url 'login' %}" style="color: #ff6b6b; margin-left: 15px; text-decoration: none; font-weight: bold;">Cerrar Sesión</a>
+        <div class="navbar-actions">
+            <button id="theme-toggle" class="theme-toggle-btn" type="button" onclick="toggleTheme()">🌙 Modo Oscuro</button>
+            <div class="user-info">
+                👤 {{ request.user.username }} 
+                {% if request.user.perfil %}
+                    <span class="badge">{{ request.user.perfil.rol }}</span>
+                {% else %}
+                    <span class="badge">SUPERUSUARIO</span>
+                {% endif %}
+                <a href="{% url 'login' %}" style="color: #ff6b6b; margin-left: 15px; text-decoration: none; font-weight: bold;">Cerrar Sesión</a>
+            </div>
         </div>
     </div>
 
@@ -124,5 +165,23 @@
 
     </div>
 
+    <script>
+        (function() {
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const storedTheme = localStorage.getItem('sgaf-theme') || 'light';
+            const applyTheme = (theme) => {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('sgaf-theme', theme);
+                if (themeToggleBtn) {
+                    themeToggleBtn.textContent = theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Oscuro';
+                }
+            };
+            window.toggleTheme = function() {
+                const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+                applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+            };
+            applyTheme(storedTheme);
+        })();
+    </script>
 </body>
 </html>

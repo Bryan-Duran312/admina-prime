@@ -4,20 +4,54 @@
     <meta charset="UTF-8">
     <title>Paz y Salvo - {{ estudiante.nombre }} {{ estudiante.apellido }}</title>
     <style>
-        body { font-family: 'Georgia', serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
-        .certificate-container { background: white; max-width: 800px; margin: auto; padding: 50px; border: 10px double #1e3c72; border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; }
-        .header { text-align: center; border-bottom: 2px solid #1e3c72; padding-bottom: 20px; margin-bottom: 30px; }
-        .header h1 { margin: 0; color: #1e3c72; font-size: 28px; text-transform: uppercase; letter-spacing: 1px; }
+        :root {
+            color-scheme: light;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-primary: #1e3c72;
+            --text-secondary: #222222;
+            --border-color: #e0e0e0;
+            --shadow-color: rgba(0,0,0,0.1);
+            --btn-bg: #1e3c72;
+            --btn-hover-bg: #162d55;
+        }
+        [data-theme="dark"] {
+            color-scheme: dark;
+            --bg-color: #121824;
+            --card-bg: #1e293b;
+            --text-primary: #60a5fa;
+            --text-secondary: #f1f5f9;
+            --border-color: #334155;
+            --shadow-color: rgba(0,0,0,0.4);
+            --btn-bg: #2563eb;
+            --btn-hover-bg: #1d4ed8;
+        }
+        body { font-family: 'Georgia', serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: var(--text-secondary); }
+        .certificate-container { background: var(--card-bg); max-width: 800px; margin: auto; padding: 50px; border: 10px double var(--text-primary); border-radius: 4px; box-shadow: 0 4px 15px var(--shadow-color); position: relative; }
+        .header { text-align: center; border-bottom: 2px solid var(--text-primary); padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { margin: 0; color: var(--text-primary); font-size: 28px; text-transform: uppercase; letter-spacing: 1px; }
         .header p { margin: 5px 0 0; color: #555; font-size: 14px; font-style: italic; }
         .title { text-align: center; margin: 30px 0; }
         .title h2 { color: #1e3c72; text-transform: uppercase; font-size: 22px; text-decoration: underline; letter-spacing: 2px; }
         .content { font-size: 16px; line-height: 1.8; color: #222; text-align: justify; margin-bottom: 50px; }
         .signatures { display: flex; justify-content: space-around; margin-top: 80px; text-align: center; }
         .line { border-top: 1px solid #333; width: 200px; margin: auto; margin-bottom: 8px; }
+        .top-actions { display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 20px; }
         .actions { text-align: center; margin-bottom: 20px; }
-        .btn-print { background-color: #1e3c72; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-size: 15px; cursor: pointer; font-weight: bold; }
-        .btn-print:hover { background-color: #162d55; }
-        .btn-back { display: inline-block; margin-right: 15px; color: #555; text-decoration: none; font-weight: bold; }
+        .btn-print { background-color: var(--btn-bg); color: white; border: none; padding: 12px 25px; border-radius: 6px; font-size: 15px; cursor: pointer; font-weight: bold; }
+        .btn-print:hover { background-color: var(--btn-hover-bg); }
+        .btn-back { display: inline-block; margin-right: 15px; color: var(--text-secondary); text-decoration: none; font-weight: bold; }
+        .theme-toggle-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 999px;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            font-weight: bold;
+        }
+        .theme-toggle-btn:hover { background-color: rgba(255,255,255,0.08); transform: translateY(-1px); }
 
         /* Estilos exclusivos para la impresión / PDF */
         @media print {
@@ -29,6 +63,9 @@
 </head>
 <body>
 
+    <div class="top-actions">
+        <button id="theme-toggle" class="theme-toggle-btn" type="button" onclick="toggleTheme()">🌙 Modo Oscuro</button>
+    </div>
     <div class="actions">
         <a href="{% url 'gestion_estudiantes' %}" class="btn-back">← Volver a Estudiantes</a>
         <button onclick="window.print()" class="btn-print">🖨️ Imprimir / Guardar en PDF</button>
@@ -68,5 +105,23 @@
         </div>
     </div>
 
+    <script>
+        (function() {
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const storedTheme = localStorage.getItem('sgaf-theme') || 'light';
+            const applyTheme = (theme) => {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('sgaf-theme', theme);
+                if (themeToggleBtn) {
+                    themeToggleBtn.textContent = theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Oscuro';
+                }
+            };
+            window.toggleTheme = function() {
+                const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+                applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+            };
+            applyTheme(storedTheme);
+        })();
+    </script>
 </body>
 </html>

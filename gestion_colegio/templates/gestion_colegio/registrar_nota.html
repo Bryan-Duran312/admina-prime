@@ -4,34 +4,70 @@
     <meta charset="UTF-8">
     <title>SGAF - Gestión de Calificaciones</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 30px; }
+        :root {
+            color-scheme: light;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-primary: #1e3c72;
+            --text-secondary: #333333;
+            --border-color: #e0e0e0;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --btn-bg: #e67e22;
+            --btn-hover-bg: #d35400;
+        }
+        [data-theme="dark"] {
+            color-scheme: dark;
+            --bg-color: #121824;
+            --card-bg: #1e293b;
+            --text-primary: #60a5fa;
+            --text-secondary: #f1f5f9;
+            --border-color: #334155;
+            --shadow-color: rgba(0, 0, 0, 0.4);
+            --btn-bg: #2563eb;
+            --btn-hover-bg: #1d4ed8;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); margin: 0; padding: 30px; color: var(--text-secondary); }
         .container { max-width: 900px; margin: auto; }
-        .form-container { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 30px; }
-        h2, h3 { color: #1e3c72; margin-top: 0; }
+        .top-actions { display: flex; justify-content: flex-end; margin-bottom: 20px; }
+        .form-container, .table-container { background: var(--card-bg); padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px var(--shadow-color); margin-bottom: 30px; border: 1px solid var(--border-color); }
+        h2, h3 { color: var(--text-primary); margin-top: 0; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .form-group { text-align: left; }
         .form-group.full { grid-column: span 2; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; font-size: 14px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        .btn-submit { width: 100%; padding: 12px; background-color: #e67e22; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px; }
-        .btn-submit:hover { background-color: #d35400; }
-        .btn-back { display: inline-block; margin-bottom: 20px; color: #1e3c72; text-decoration: none; font-weight: bold; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--text-secondary); font-size: 14px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; font-size: 14px; background: transparent; color: var(--text-secondary); }
+        input::placeholder, select { color: rgba(151, 163, 175, 0.8); }
+        .btn-submit { width: 100%; padding: 12px; background-color: var(--btn-bg); color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 10px; }
+        .btn-submit:hover { background-color: var(--btn-hover-bg); }
+        .btn-back { display: inline-block; margin-bottom: 20px; color: var(--text-primary); text-decoration: none; font-weight: bold; }
         .alert-success { background-color: #d4edda; color: #155724; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
         .alert-danger { background-color: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
-        
-        /* Estilos de la Tabla de Historial */
-        .table-container { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .table-container { box-shadow: 0 4px 12px var(--shadow-color); }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
-        th { background-color: #f8f9fa; color: #1e3c72; }
-        .badge-grado { background: #e8f4fd; color: #1e3c72; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+        th { background-color: rgba(248, 249, 250, 0.9); color: var(--text-primary); }
+        .badge-grado { background: #e8f4fd; color: var(--text-primary); padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
         .btn-edit { color: #e67e22; font-weight: bold; text-decoration: none; }
         .btn-edit:hover { text-decoration: underline; }
+        .theme-toggle-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 999px;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            font-weight: bold;
+        }
+        .theme-toggle-btn:hover { background-color: rgba(255,255,255,0.08); transform: translateY(-1px); }
     </style>
 </head>
 <body>
 
     <div class="container">
+        <div class="top-actions">
+            <button id="theme-toggle" class="theme-toggle-btn" type="button" onclick="toggleTheme()">🌙 Modo Oscuro</button>
+        </div>
         <a href="{% url 'panel_inicio' %}" class="btn-back">← Volver al Panel</a>
         
         <div class="form-container">
@@ -103,5 +139,23 @@
 
     </div>
 
+    <script>
+        (function() {
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const storedTheme = localStorage.getItem('sgaf-theme') || 'light';
+            const applyTheme = (theme) => {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('sgaf-theme', theme);
+                if (themeToggleBtn) {
+                    themeToggleBtn.textContent = theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Oscuro';
+                }
+            };
+            window.toggleTheme = function() {
+                const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+                applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+            };
+            applyTheme(storedTheme);
+        })();
+    </script>
 </body>
 </html>
