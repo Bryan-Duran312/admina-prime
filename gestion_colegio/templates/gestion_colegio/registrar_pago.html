@@ -1,125 +1,55 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>SGAF - Registrar Pago</title>
-    <style>
-        :root {
-            color-scheme: light;
-            --bg-color: #f4f6f9;
-            --card-bg: #ffffff;
-            --text-primary: #1e3c72;
-            --text-secondary: #333333;
-            --border-color: #e0e0e0;
-            --shadow-color: rgba(0, 0, 0, 0.08);
-            --btn-bg: #27ae60;
-            --btn-hover-bg: #219150;
-        }
-        [data-theme="dark"] {
-            color-scheme: dark;
-            --bg-color: #121824;
-            --card-bg: #1e293b;
-            --text-primary: #60a5fa;
-            --text-secondary: #f1f5f9;
-            --border-color: #334155;
-            --shadow-color: rgba(0, 0, 0, 0.4);
-            --btn-bg: #1d4ed8;
-            --btn-hover-bg: #2563eb;
-        }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); margin: 0; padding: 40px; color: var(--text-secondary); }
-        .top-actions { display: flex; justify-content: flex-end; margin-bottom: 20px; }
-        .form-container { background: var(--card-bg); padding: 30px; border-radius: 10px; max-width: 500px; margin: auto; box-shadow: 0 4px 12px var(--shadow-color); border: 1px solid var(--border-color); }
-        h2 { color: var(--text-primary); margin-top: 0; }
-        .form-group { margin-bottom: 20px; text-align: left; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--text-secondary); }
-        input, select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; font-size: 15px; background: transparent; color: var(--text-secondary); }
-        input::placeholder, select { color: rgba(151, 163, 175, 0.9); }
-        .btn-submit { width: 100%; padding: 12px; background-color: var(--btn-bg); color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; }
-        .btn-submit:hover { background-color: var(--btn-hover-bg); }
-        .btn-back { display: inline-block; margin-bottom: 20px; color: var(--text-primary); text-decoration: none; font-weight: bold; }
-        .alert-success { background-color: #d4edda; color: #155724; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
-        .alert-danger { background-color: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
-        .theme-toggle-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            border-radius: 999px;
-            padding: 10px 16px;
-            cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.2s ease;
-            font-weight: bold;
-        }
-        .theme-toggle-btn:hover { background-color: rgba(255,255,255,0.08); transform: translateY(-1px); }
-    </style>
-</head>
-<body>
+{% extends 'gestion_colegio/base.html' %}
 
-    <div class="top-actions">
-        <button id="theme-toggle" class="theme-toggle-btn" type="button" onclick="toggleTheme()">🌙 Modo Oscuro</button>
+{% block title %}SGAF - Registrar Pago{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card p-4">
+                <a href="{% url 'panel_inicio' %}" class="text-decoration-none">← Volver al Panel</a>
+                <h2 class="mt-2">💵 Registro de Pagos</h2>
+                <p>Módulo exclusivo de Secretaría / Tesorería</p>
+
+                {% if mensaje %}<div class="alert alert-success">{{ mensaje }}</div>{% endif %}
+                {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="estudiante" class="form-label">Estudiante:</label>
+                        <select name="estudiante" id="estudiante" class="form-select" required>
+                            <option value="" disabled selected>-- Seleccione un Estudiante --</option>
+                            {% for est in estudiantes %}
+                                <option value="{{ est.id }}">{{ est.nombre }} {{ est.apellido }} - {{ est.grado }}</option>
+                            {% empty %}
+                                <option value="" disabled>No hay estudiantes registrados. Agrega uno en /admin</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="monto" class="form-label">Monto (COP $):</label>
+                        <input type="number" step="0.01" name="monto" id="monto" class="form-control" placeholder="Ej: 150000" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="metodo_pago" class="form-label">Método de Pago:</label>
+                        <select name="metodo_pago" id="metodo_pago" class="form-select" required>
+                            <option value="EFECTIVO">Efectivo</option>
+                            <option value="TRANSFERENCIA">Transferencia Bancaria</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="referencia_comprobante" class="form-label">N° de Comprobante / Voucher (Opcional):</label>
+                        <input type="text" name="referencia_comprobante" id="referencia_comprobante" class="form-control" placeholder="Ej: TR-9843211">
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100">Registrar Pago en Caja</button>
+                </form>
+            </div>
+        </div>
     </div>
-
-    <div class="form-container">
-        <a href="{% url 'panel_inicio' %}" class="btn-back">← Volver al Panel</a>
-        <h2>💵 Registro de Pagos</h2>
-        <p style="color: #666; font-size: 14px;">Módulo exclusivo de Secretaría / Tesorería</p>
-
-        {% if mensaje %}<div class="alert-success">{{ mensaje }}</div>{% endif %}
-        {% if error %}<div class="alert-danger">{{ error }}</div>{% endif %}
-
-        <form method="POST">
-            {% csrf_token %}
-            
-            <div class="form-group">
-                <label for="estudiante">Estudiante:</label>
-                <select name="estudiante" id="estudiante" required>
-                    <option value="" disabled selected>-- Seleccione un Estudiante --</option>
-                    {% for est in estudiantes %}
-                        <option value="{{ est.id }}">{{ est.nombre }} {{ est.apellido }} - {{ est.grado }}</option>
-                    {% empty %}
-                        <option value="" disabled>No hay estudiantes registrados. Agrega uno en /admin</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="monto">Monto (COP $):</label>
-                <input type="number" step="0.01" name="monto" id="monto" placeholder="Ej: 150000" required>
-            </div>
-
-            <div class="form-group">
-                <label for="metodo_pago">Método de Pago:</label>
-                <select name="metodo_pago" id="metodo_pago" required>
-                    <option value="EFECTIVO">Efectivo</option>
-                    <option value="TRANSFERENCIA">Transferencia Bancaria</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="referencia_comprobante">N° de Comprobante / Voucher (Opcional):</label>
-                <input type="text" name="referencia_comprobante" id="referencia_comprobante" placeholder="Ej: TR-9843211">
-            </div>
-
-            <button type="submit" class="btn-submit">Registrar Pago en Caja</button>
-        </form>
-    </div>
-
-    <script>
-        (function() {
-            const themeToggleBtn = document.getElementById('theme-toggle');
-            const storedTheme = localStorage.getItem('sgaf-theme') || 'light';
-            const applyTheme = (theme) => {
-                document.documentElement.setAttribute('data-theme', theme);
-                localStorage.setItem('sgaf-theme', theme);
-                if (themeToggleBtn) {
-                    themeToggleBtn.textContent = theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Oscuro';
-                }
-            };
-            window.toggleTheme = function() {
-                const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-                applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
-            };
-            applyTheme(storedTheme);
-        })();
-    </script>
-</body>
-</html>
+</div>
+{% endblock %}

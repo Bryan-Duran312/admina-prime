@@ -1,187 +1,115 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGAF - Panel Principal</title>
-    <style>
-        :root {
-            color-scheme: light;
-            --bg-color: #f4f6f9;
-            --card-bg: #ffffff;
-            --text-primary: #1e3c72;
-            --text-secondary: #333333;
-            --border-color: #e0e0e0;
-            --shadow-color: rgba(0, 0, 0, 0.08);
-            --navbar-bg: #1e3c72;
-            --navbar-text: #ffffff;
-            --btn-bg: #1e3c72;
-            --btn-hover-bg: #2a5298;
-        }
-        [data-theme="dark"] {
-            color-scheme: dark;
-            --bg-color: #121824;
-            --card-bg: #1e293b;
-            --text-primary: #60a5fa;
-            --text-secondary: #f1f5f9;
-            --border-color: #334155;
-            --shadow-color: rgba(0, 0, 0, 0.4);
-            --navbar-bg: #0f172a;
-            --navbar-text: #f8fafc;
-            --btn-bg: #1d4ed8;
-            --btn-hover-bg: #2563eb;
-        }
+{% extends 'gestion_colegio/base.html' %}
 
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { margin: 0; background-color: var(--bg-color); color: var(--text-secondary); }
-        .navbar {
-            background-color: var(--navbar-bg);
-            color: var(--navbar-text);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .navbar h2 { margin: 0; font-size: 20px; }
-        .navbar-actions { display: flex; align-items: center; gap: 12px; }
-        .user-info { font-size: 14px; }
-        .badge {
-            background-color: #2a5298;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-left: 8px;
-        }
-        .theme-toggle-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            border-radius: 999px;
-            padding: 10px 16px;
-            cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.2s ease;
-            font-weight: bold;
-        }
-        .theme-toggle-btn:hover { background-color: rgba(255,255,255,0.08); transform: translateY(-1px); }
+{% block title %}SGAF - Panel Principal{% endblock %}
 
-        /* Dashboard Container */
-        .container { padding: 40px; max-width: 1200px; margin: auto; }
-        .welcome-title { margin-bottom: 30px; color: var(--text-primary); }
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-0">Panel Principal</h2>
+            <small>Bienvenido, {{ request.user.first_name }}</small>
+        </div>
+    </div>
 
-        /* Grid de Módulos */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-        }
-        .card {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px var(--shadow-color);
-            border: 1px solid var(--border-color);
-            border-top: 4px solid #1e3c72;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 18px rgba(0,0,0,0.1); }
-        .card h3 { margin-top: 0; color: var(--text-primary); }
-        .card p { color: var(--text-secondary); font-size: 14px; line-height: 1.5; }
-        .btn-card {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 10px 18px;
-            background-color: var(--btn-bg);
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        .btn-card:hover { background-color: var(--btn-hover-bg); }
-
-        /* Estilos especiales por rol */
-        .card.admin { border-top-color: #27ae60; }
-        .card.profesor { border-top-color: #e67e22; }
-        .card.director { border-top-color: #8e44ad; }
-    </style>
-</head>
-<body>
-
-    <div class="navbar">
-        <h2>SGAF - Sistema de Gestión</h2>
-        <div class="navbar-actions">
-            <button id="theme-toggle" class="theme-toggle-btn" type="button" onclick="toggleTheme()">🌙 Modo Oscuro</button>
-            <div class="user-info">
-                👤 {{ request.user.username }} 
-                {% if request.user.perfil %}
-                    <span class="badge">{{ request.user.perfil.rol }}</span>
-                {% else %}
-                    <span class="badge">SUPERUSUARIO</span>
-                {% endif %}
-                <a href="{% url 'login' %}" style="color: #ff6b6b; margin-left: 15px; text-decoration: none; font-weight: bold;">Cerrar Sesión</a>
+    {% if user_rol == 'DIRECTOR' %}
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="kpi-card">
+                <h6>Total Recaudado</h6>
+                <div class="display-6 fw-bold">$ {{ total_recaudado|default:"0" }}</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="kpi-card">
+                <h6>Notas Registradas</h6>
+                <div class="display-6 fw-bold">{{ total_notas|default:"0" }}</div>
             </div>
         </div>
     </div>
-
-    <div class="cards-container">
-
-        {% if request.user.perfil.rol == 'ADMINISTRADOR' or request.user.is_superuser %}
-        <div class="card secretaria">
-            <h3>💵 Gestión de Pagos</h3>
-            <p>Registre y consulte el historial de pagos de matrícula, pensiones y certificaciones.</p>
-            <a href="{% url 'registrar_pago' %}" class="btn-card">Registrar Pago</a>
+    {% elif user_rol == 'PROFESOR' %}
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="kpi-card">
+                <h6>Módulo activo</h6>
+                <div class="display-6 fw-bold">Calificaciones</div>
+            </div>
         </div>
-
-        <div class="card secretaria">
-            <h3>🎓 Gestión de Estudiantes</h3>
-            <p>Matricule nuevos alumnos en el sistema y consulte la lista activa por grado.</p>
-            <a href="{% url 'gestion_estudiantes' %}" class="btn-card">Ir a Estudiantes</a>
-        </div>
-        {% endif %}
-
-        {% if request.user.perfil.rol == 'PROFESOR' %}
-        <div class="card Docente">
-            <h3>📝 Gestión de Notas</h3>
-            <p>Ingrese las calificaciones periódicas, talleres y evaluaciones correspondientes a su asignatura.</p>
-            <a href="{% url 'registrar_nota' %}" class="btn-card">Ingresar a Notas</a>
-        </div>
-        {% endif %}
-
-        {% if request.user.perfil.rol == 'DIRECTOR' or request.user.is_superuser %}
-        <div class="card director">
-            <h3>📊 Reportes Financieros y Académicos</h3>
-            <p>Módulo de alta dirección. Gráficos de ingresos mensuales y métricas del colegio.</p>
-            <a href="{% url 'reportes_director' %}" class="btn-card">Ver Reportes Globales</a>
-        </div>
-
-        <div class="card director">
-            <h3>🛡️ Auditoría e Historial</h3>
-            <p>Consulte las correcciones de notas o dinero modificados por profesores y administradores.</p>
-            <a href="{% url 'reportes_director' %}#bitacora" class="btn-card">Ver Bitácora</a>
-        </div>
-        {% endif %}
-
     </div>
+    {% else %}
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="kpi-card">
+                <h6>Estudiantes</h6>
+                <div class="display-6 fw-bold">{{ total_estudiantes|default:"0" }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="kpi-card">
+                <h6>Total Recaudado</h6>
+                <div class="display-6 fw-bold">$ {{ total_recaudado|default:"0" }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="kpi-card">
+                <h6>Notas Registradas</h6>
+                <div class="display-6 fw-bold">{{ total_notas|default:"0" }}</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
-    <script>
-        (function() {
-            const themeToggleBtn = document.getElementById('theme-toggle');
-            const storedTheme = localStorage.getItem('sgaf-theme') || 'light';
-            const applyTheme = (theme) => {
-                document.documentElement.setAttribute('data-theme', theme);
-                localStorage.setItem('sgaf-theme', theme);
-                if (themeToggleBtn) {
-                    themeToggleBtn.textContent = theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Oscuro';
-                }
-            };
-            window.toggleTheme = function() {
-                const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-                applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
-            };
-            applyTheme(storedTheme);
-        })();
-    </script>
-</body>
-</html>
+    <div class="row g-3">
+        {% if user_rol != 'PROFESOR' %}
+        <div class="col-lg-8">
+            <div class="kpi-card mb-3">
+                <h5>Ingresos Mensuales</h5>
+                <canvas id="incomeChart" height="120"></canvas>
+            </div>
+        </div>
+        {% endif %}
+        <div class="{% if user_rol == 'PROFESOR' %}col-12{% else %}col-lg-4{% endif %}">
+            <div class="kpi-card">
+                <h5>Actividad Reciente</h5>
+                <ul class="list-unstyled mb-0">
+                    {% for act in recientes %}
+                        <li class="mb-2"><strong>{{ act.usuario }}</strong> — <small>{{ act.accion }}</small></li>
+                    {% empty %}
+                        <li>No hay actividad reciente.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+{% if user_rol != 'PROFESOR' %}
+<script>
+    (function(){
+        const ctx = document.getElementById('incomeChart');
+        if(!ctx) return;
+
+        const labels = {{ monthly_income_labels|default:"['Ene','Feb','Mar','Abr','May','Jun']"|safe }};
+        const values = {{ monthly_income_values|default:"[120000,150000,90000,180000,200000,130000]"|safe }};
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Ingresos (COP)',
+                    data: values,
+                    borderColor: '#1e3c72',
+                    backgroundColor: 'rgba(30,60,114,0.12)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+    })();
+</script>
+{% endif %}
+{% endblock %}

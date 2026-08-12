@@ -1,35 +1,72 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import Sum
 from datetime import datetime
 from .models import Estudiante, Pago, Nota, HistorialModificacion
+
+
+def get_user_rol(user):
+    if not user or not user.is_authenticated:
+        return 'VISITANTE'
+    if user.is_superuser:
+        return 'ADMINISTRADOR'
+    perfil = getattr(user, 'perfil', None)
+    if perfil is None:
+        return 'ADMINISTRADOR'
+    return perfil.rol
+
 
 def vista_login(request):
     error = None
     if request.method == 'POST':
         usuario_txt = request.POST.get('username')
         clave_txt = request.POST.get('password')
-        
-        # Verificamos si el usuario y contraseña existen en la base de datos
+
         user = authenticate(request, username=usuario_txt, password=clave_txt)
-        
+
         if user is not None:
             login(request, user)
-            return redirect('panel_inicio') # Si es correcto, lo mandamos al inicio público
-        else:
-            error = "Usuario o contraseña incorrectos. Intenta de nuevo."
-            
+            return redirect('panel_inicio')
+        error = "Usuario o contraseña incorrectos. Intenta de nuevo."
+
     return render(request, 'gestion_colegio/login.html', {'error': error})
 
+
+def vista_logout(request):
+    """Cierra la sesión del usuario y redirige al login."""
+    logout(request)
+    return redirect('login')
+
+
 def vista_inicio(request):
-    # Esta será la pantalla de bienvenida amigable del colegio
     if not request.user.is_authenticated:
-        return redirect('login') # Si no ha iniciado sesión, lo echa al login
-    return render(request, 'gestion_colegio/inicio.html', {'usuario': request.user})
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol == 'PROFESOR':
+        return redirect('registrar_nota')
+
+    return render(request, 'gestion_colegio/inicio.html', {
+        'usuario': request.user,
+        'user_rol': rol,
+        'total_estudiantes': Estudiante.objects.count(),
+        'total_recaudado': Pago.objects.aggregate(Sum('monto'))['monto__sum'] or 0,
+        'total_notas': Nota.objects.count(),
+        'recientes': [],
+        'monthly_income_labels': ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+        'monthly_income_values': [120000, 150000, 90000, 180000, 200000, 130000],
+    })
+
 
 def vista_registrar_pago(request):
     if not request.user.is_authenticated:
         return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol == 'PROFESOR' or rol == 'DIRECTOR':
+        messages.warning(request, 'El módulo de pagos no está disponible para este rol.')
+        return redirect('panel_inicio')
 
     mensaje = None
     error = None
@@ -42,8 +79,6 @@ def vista_registrar_pago(request):
 
         try:
             estudiante_obj = Estudiante.objects.get(id=estudiante_id)
-            
-            # Guardamos el pago en la base de datos de SGAF
             Pago.objects.create(
                 estudiante=estudiante_obj,
                 monto=monto,
@@ -55,21 +90,24 @@ def vista_registrar_pago(request):
         except Exception as e:
             error = f"Ocurrió un error al registrar el pago: {str(e)}"
 
-    # Traemos la lista de estudiantes para el menú desplegable
     estudiantes = Estudiante.objects.all()
-    
+
     return render(request, 'gestion_colegio/registrar_pago.html', {
         'estudiantes': estudiantes,
         'mensaje': mensaje,
-        'error': error
+        'error': error,
+        'user_rol': rol,
     })
 
+
 def vista_registrar_nota(request):
-    # Restricción: Solo Docentes pueden ingresar notas
-    if request.user.perfil.rol != 'PROFESOR':
-        return render(request, 'gestion_colegio/error_permiso.html', {
-            'mensaje': 'Acceso denegado. La gestión de notas es exclusiva del personal Docente.'
-        })
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'PROFESOR':
+        messages.warning(request, 'El módulo de calificación es de uso exclusivo para el personal docente.')
+        return redirect('panel_inicio')
 
     mensaje = None
     error = None
@@ -81,7 +119,6 @@ def vista_registrar_nota(request):
 
         try:
             estudiante_obj = Estudiante.objects.get(id=estudiante_id)
-            
             Nota.objects.create(
                 estudiante=estudiante_obj,
                 materia=materia,
@@ -94,29 +131,32 @@ def vista_registrar_nota(request):
 
     estudiantes = Estudiante.objects.all()
 
-    # Si es SUPERUSUARIO ve todas las notas, si es PROFESOR solo ve las que ÉL ha subido
     if request.user.is_superuser:
         mis_notas = Nota.objects.all().order_by('-fecha_registro')
     else:
         mis_notas = Nota.objects.filter(profesor_que_registro=request.user).order_by('-fecha_registro')
-    
+
     return render(request, 'gestion_colegio/registrar_nota.html', {
         'estudiantes': estudiantes,
         'mis_notas': mis_notas,
         'mensaje': mensaje,
-        'error': error
+        'error': error,
+        'user_rol': rol,
     })
+
 
 def vista_reportes_director(request):
     if not request.user.is_authenticated:
         return redirect('login')
 
-    # Calculamos el total de dinero ingresado en el colegio
-    total_recaudado = Pago.objects.aggregate(Sum('monto'))['monto__sum'] or 0
+    rol = get_user_rol(request.user)
+    if rol not in ['ADMINISTRADOR', 'DIRECTOR']:
+        messages.warning(request, 'No tienes permisos para consultar reportes del sistema.')
+        return redirect('panel_inicio')
 
-    # Traemos las listas para las tablas del reporte
-    ultimos_pagos = Pago.objects.all().order_by('-fecha_pago')[:10]  # Últimos 10 pagos
-    ultimas_notas = Nota.objects.all().order_by('-fecha_registro')[:10]  # Últimas 10 notas
+    total_recaudado = Pago.objects.aggregate(Sum('monto'))['monto__sum'] or 0
+    ultimos_pagos = Pago.objects.all().order_by('-fecha_pago')[:10]
+    ultimas_notas = Nota.objects.all().order_by('-fecha_registro')[:10]
     historial_cambios = HistorialModificacion.objects.all().order_by('-fecha_modificacion')[:10]
 
     return render(request, 'gestion_colegio/reportes_director.html', {
@@ -124,11 +164,18 @@ def vista_reportes_director(request):
         'ultimos_pagos': ultimos_pagos,
         'ultimas_notas': ultimas_notas,
         'historial_cambios': historial_cambios,
+        'user_rol': rol,
     })
+
 
 def vista_editar_nota(request, nota_id):
     if not request.user.is_authenticated:
         return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'PROFESOR':
+        messages.warning(request, 'La corrección de notas es exclusiva del personal docente.')
+        return redirect('panel_inicio')
 
     nota = Nota.objects.get(id=nota_id)
     mensaje = None
@@ -142,8 +189,6 @@ def vista_editar_nota(request, nota_id):
             error = "⚠️ Es obligatorio escribir una justificación para corregir la nota."
         else:
             valor_anterior = str(nota.valor_nota)
-            
-            # 1. Guardamos el registro en la Bitácora de Auditoría
             HistorialModificacion.objects.create(
                 tipo='NOTA',
                 usuario_que_modifico=request.user,
@@ -151,22 +196,26 @@ def vista_editar_nota(request, nota_id):
                 valor_nuevo=f"Nota de {nota.materia}: {nueva_nota}",
                 justificacion=justificacion
             )
-
-            # 2. Actualizamos la nota real en la base de datos
             nota.valor_nota = nueva_nota
             nota.save()
-
             mensaje = "✅ La nota ha sido corregida y el cambio se ha registrado en la Bitácora de Auditoría."
 
     return render(request, 'gestion_colegio/editar_nota.html', {
         'nota': nota,
         'mensaje': mensaje,
-        'error': error
+        'error': error,
+        'user_rol': rol,
     })
+
 
 def vista_gestion_estudiantes(request):
     if not request.user.is_authenticated:
         return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'ADMINISTRADOR':
+        messages.warning(request, 'El módulo de estudiantes está reservado para administración.')
+        return redirect('panel_inicio')
 
     mensaje = None
     error = None
@@ -191,14 +240,18 @@ def vista_gestion_estudiantes(request):
     return render(request, 'gestion_colegio/estudiantes.html', {
         'estudiantes': estudiantes,
         'mensaje': mensaje,
-        'error': error
+        'error': error,
+        'user_rol': rol,
     })
+
 
 def vista_certificado_paz_y_salvo(request, estudiante_id):
     if not request.user.is_authenticated:
         return redirect('login')
 
-    if request.user.perfil.rol not in ['ADMINISTRADOR', 'DIRECTOR'] and not request.user.is_superuser:
+    rol = get_user_rol(request.user)
+    if rol not in ['ADMINISTRADOR', 'DIRECTOR']:
+        messages.warning(request, 'No tienes permisos para generar certificados de paz y salvo.')
         return redirect('panel_inicio')
 
     estudiante = get_object_or_404(Estudiante, id=estudiante_id)
@@ -207,5 +260,6 @@ def vista_certificado_paz_y_salvo(request, estudiante_id):
     return render(request, 'gestion_colegio/certificado_paz_y_salvo.html', {
         'estudiante': estudiante,
         'fecha': fecha_actual,
-        'emisor': request.user.get_full_name() or request.user.username
+        'emisor': request.user.get_full_name() or request.user.username,
+        'user_rol': rol,
     })
