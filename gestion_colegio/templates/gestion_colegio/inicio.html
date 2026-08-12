@@ -142,7 +142,7 @@
         {% endif %}
 
         {% if request.user.perfil.rol == 'PROFESOR' %}
-        <div class="card docente">
+        <div class="card Docente">
             <h3>📝 Gestión de Notas</h3>
             <p>Ingrese las calificaciones periódicas, talleres y evaluaciones correspondientes a su asignatura.</p>
             <a href="{% url 'registrar_nota' %}" class="btn-card">Ingresar a Notas</a>

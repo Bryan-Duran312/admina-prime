@@ -74,26 +74,26 @@ WSGI_APPLICATION = 'admina_prime_core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-#DATABASES = {
-#   'default': {
-#       'ENGINE': 'django_mssql_backend',
-#       'NAME': 'SGAF',     # Base de datos de desarrollo
-#       'USER': 'sa',                     # Usuario simple para desarrollo
-#       'PASSWORD': 'Bryan2008',             # Contraseña de desarrollo
-#       'HOST': r'USER\SQLEXPRESS',            # Servidor local
-#       'PORT': '',                 # Puerto estándar
-#       'OPTIONS': {
-#           'driver': 'ODBC Driver 17 for SQL Server',
-#       },
-#   }
-#}
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+   'default': {
+       'ENGINE': 'mssql',
+       'NAME': 'SGAF',     # Base de datos de desarrollo
+       'USER': 'sa',                     # Usuario simple para desarrollo
+       'PASSWORD': 'Bryan2008',             # Contraseña de desarrollo
+       'HOST': r'USER\SQLEXPRESS',            # Servidor local
+       'PORT': '',                 # Puerto estándar
+       'OPTIONS': {
+           'driver': 'ODBC Driver 17 for SQL Server',
+       },
+   }
 }
+
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.sqlite3',
+#        'NAME': BASE_DIR / 'db.sqlite3',
+#    }
+#}
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

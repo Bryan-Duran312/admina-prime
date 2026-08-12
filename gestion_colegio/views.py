@@ -65,10 +65,10 @@ def vista_registrar_pago(request):
     })
 
 def vista_registrar_nota(request):
-    # Restricción: Solo docentes pueden ingresar notas
+    # Restricción: Solo Docentes pueden ingresar notas
     if request.user.perfil.rol != 'PROFESOR':
         return render(request, 'gestion_colegio/error_permiso.html', {
-            'mensaje': 'Acceso denegado. La gestión de notas es exclusiva del personal docente.'
+            'mensaje': 'Acceso denegado. La gestión de notas es exclusiva del personal Docente.'
         })
 
     mensaje = None

@@ -66,7 +66,7 @@ class HistorialModificacion(models.Model):
     fecha_modificacion = models.DateTimeField(auto_now_add=True)
     valor_anterior = models.CharField(max_length=255) # Guarda lo que había antes (ej: la nota vieja o el monto viejo)
     valor_nuevo = models.CharField(max_length=255)    # Guarda el cambio corregido
-    justificacion = models.TextField() # Por qué se equivocó el docente o la secretaria
+    justificacion = models.TextField() # Por qué se equivocó el Docente o la secretaria
 
     def __str__(self):
         return f"Cambio {self.tipo} por {self.usuario_que_modifico.username} el {self.fecha_modificacion}"
