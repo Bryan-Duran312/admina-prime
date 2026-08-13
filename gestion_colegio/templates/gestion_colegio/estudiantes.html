@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
+<head> 
     <meta charset="UTF-8">
     <title>SGAF - Gestión de Estudiantes</title>
     <style>
@@ -26,6 +26,8 @@
             --btn-bg: #2563eb;
             --btn-hover-bg: #1d4ed8;
         }
+        /* Hacer que la barra superior use el mismo color de tarjeta según el tema */
+        header, .navbar, .top-actions { background-color: var(--card-bg); color: var(--text-secondary); }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); margin: 0; padding: 30px; color: var(--text-secondary); }
         .container { max-width: 900px; margin: auto; }
         .top-actions { display: flex; justify-content: flex-end; margin-bottom: 20px; }
@@ -85,6 +87,11 @@
                     <div class="form-group">
                         <label for="apellido">Apellido(s):</label>
                         <input type="text" name="apellido" id="apellido" placeholder="Ej: Pérez" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="documento_identidad">Documento de Identidad:</label>
+                        <input type="text" name="documento_identidad" id="documento_identidad" placeholder="Ej: 12345678" required>
                     </div>
 
                     <div class="form-group">

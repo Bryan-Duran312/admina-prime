@@ -22,10 +22,147 @@ def vista_login(request):
     return render(request, 'gestion_colegio/login.html', {'error': error})
 
 def vista_inicio(request):
-    # Esta será la pantalla de bienvenida amigable del colegio
     if not request.user.is_authenticated:
-        return redirect('login') # Si no ha iniciado sesión, lo echa al login
-    return render(request, 'gestion_colegio/inicio.html', {'usuario': request.user})
+        return redirect('login')
+
+    mensaje_pago = None
+    error_pago = None
+    mensaje_nota = None
+    error_nota = None
+    mensaje_estudiante = None
+    error_estudiante = None
+
+    user_role = None
+    if hasattr(request.user, 'perfil') and request.user.perfil:
+        user_role = request.user.perfil.rol
+
+    active_section = None
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type')
+        active_section = form_type
+
+        if form_type == 'pagos' and (user_role == 'ADMINISTRADOR' or request.user.is_superuser):
+            estudiante_id = request.POST.get('estudiante')
+            monto = request.POST.get('monto')
+            metodo = request.POST.get('metodo_pago')
+            comprobante = request.POST.get('referencia_comprobante', '')
+            try:
+                estudiante_obj = Estudiante.objects.get(id=estudiante_id)
+                Pago.objects.create(
+                    estudiante=estudiante_obj,
+                    monto=monto,
+                    metodo_pago=metodo,
+                    referencia_comprobante=comprobante,
+                    registrado_por=request.user
+                )
+                mensaje_pago = f"✅ Pago de ${monto} registrado exitosamente para {estudiante_obj.nombre} {estudiante_obj.apellido}."
+            except Exception as e:
+                error_pago = f"Ocurrió un error al registrar el pago: {str(e)}"
+
+        elif form_type == 'notas' and user_role == 'PROFESOR':
+            estudiante_id = request.POST.get('estudiante')
+            materia = request.POST.get('materia')
+            valor_nota = request.POST.get('valor_nota')
+            try:
+                estudiante_obj = Estudiante.objects.get(id=estudiante_id)
+                Nota.objects.create(
+                    estudiante=estudiante_obj,
+                    materia=materia,
+                    valor_nota=valor_nota,
+                    profesor_que_registro=request.user
+                )
+                mensaje_nota = f"✅ Nota de {valor_nota} en {materia} asignada a {estudiante_obj.nombre} {estudiante_obj.apellido}."
+            except Exception as e:
+                error_nota = f"Error al registrar la nota: {str(e)}"
+
+        elif form_type == 'estudiantes' and (user_role == 'ADMINISTRADOR' or request.user.is_superuser):
+            nombre = request.POST.get('nombre')
+            apellido = request.POST.get('apellido')
+            grado = request.POST.get('grado')
+            documento = request.POST.get('documento_identidad', '').strip()
+            try:
+                if not documento:
+                    error_estudiante = "Error al registrar estudiante: el campo 'documento_identidad' es obligatorio."
+                else:
+                    if Estudiante.objects.filter(documento_identidad=documento).exists():
+                        error_estudiante = f"Error al registrar estudiante: ya existe un estudiante con el documento {documento}."
+                    else:
+                        Estudiante.objects.create(
+                            nombre=nombre,
+                            apellido=apellido,
+                            grado=grado,
+                            documento_identidad=documento
+                        )
+                        mensaje_estudiante = f"✅ Estudiante {nombre} {apellido} matriculado exitosamente en el grado {grado}."
+            except Exception as e:
+                error_estudiante = f"Error al registrar estudiante: {str(e)}"
+
+    if not active_section:
+        if request.user.is_superuser or user_role == 'ADMINISTRADOR':
+            active_section = 'pagos'
+        elif user_role == 'PROFESOR':
+            active_section = 'notas'
+        elif user_role == 'DIRECTOR':
+            active_section = 'reportes'
+        else:
+            active_section = 'pagos'
+
+    estudiantes = Estudiante.objects.all()
+    if request.user.is_superuser:
+        mis_notas = Nota.objects.all().order_by('-fecha_registro')
+    elif user_role == 'PROFESOR':
+        mis_notas = Nota.objects.filter(profesor_que_registro=request.user).order_by('-fecha_registro')
+    else:
+        mis_notas = Nota.objects.none()
+
+    total_recaudado = Pago.objects.aggregate(Sum('monto'))['monto__sum'] or 0
+    ultimos_pagos = Pago.objects.all().order_by('-fecha_pago')[:10]
+    ultimas_notas = Nota.objects.all().order_by('-fecha_registro')[:10]
+    historial_cambios = HistorialModificacion.objects.all().order_by('-fecha_modificacion')[:10]
+
+    if request.user.is_superuser or user_role == 'ADMINISTRADOR':
+        allowed_modules = [
+            {'key': 'pagos', 'label': 'Gestión de Pagos'},
+            {'key': 'estudiantes', 'label': 'Gestión de Estudiantes'},
+            {'key': 'reportes', 'label': 'Reportes Financieros y Académicos'},
+            {'key': 'bitacoras', 'label': 'Auditoría e Historial'},
+        ]
+    elif user_role == 'PROFESOR':
+        allowed_modules = [
+            {'key': 'notas', 'label': 'Gestión de Notas'},
+        ]
+    elif user_role == 'DIRECTOR':
+        allowed_modules = [
+            {'key': 'reportes', 'label': 'Reportes Financieros y Académicos'},
+            {'key': 'bitacoras', 'label': 'Auditoría e Historial'},
+        ]
+    else:
+        allowed_modules = []
+
+    allowed_keys = [module['key'] for module in allowed_modules]
+    if active_section not in allowed_keys:
+        active_section = allowed_keys[0] if allowed_keys else None
+
+    display_role = 'SUPERUSUARIO' if request.user.is_superuser else (user_role or 'Sin rol asignado')
+
+    return render(request, 'gestion_colegio/inicio.html', {
+        'user_role': user_role,
+        'display_role': display_role,
+        'active_section': active_section,
+        'allowed_modules': allowed_modules,
+        'estudiantes': estudiantes,
+        'mis_notas': mis_notas,
+        'total_recaudado': total_recaudado,
+        'ultimos_pagos': ultimos_pagos,
+        'ultimas_notas': ultimas_notas,
+        'historial_cambios': historial_cambios,
+        'mensaje_pago': mensaje_pago,
+        'error_pago': error_pago,
+        'mensaje_nota': mensaje_nota,
+        'error_nota': error_nota,
+        'mensaje_estudiante': mensaje_estudiante,
+        'error_estudiante': error_estudiante,
+    })
 
 def vista_registrar_pago(request):
     if not request.user.is_authenticated:
@@ -176,13 +313,23 @@ def vista_gestion_estudiantes(request):
         apellido = request.POST.get('apellido')
         grado = request.POST.get('grado')
 
+        documento = request.POST.get('documento_identidad', '').strip()
+
         try:
-            Estudiante.objects.create(
-                nombre=nombre,
-                apellido=apellido,
-                grado=grado
-            )
-            mensaje = f"✅ Estudiante {nombre} {apellido} matriculado exitosamente en el grado {grado}."
+            if not documento:
+                error = "Error al registrar estudiante: el campo 'documento_identidad' es obligatorio."
+            else:
+                # Verificamos si ya existe un estudiante con ese documento
+                if Estudiante.objects.filter(documento_identidad=documento).exists():
+                    error = f"Error al registrar estudiante: ya existe un estudiante con el documento {documento}."
+                else:
+                    Estudiante.objects.create(
+                        nombre=nombre,
+                        apellido=apellido,
+                        grado=grado,
+                        documento_identidad=documento
+                    )
+                    mensaje = f"✅ Estudiante {nombre} {apellido} matriculado exitosamente en el grado {grado}."
         except Exception as e:
             error = f"Error al registrar estudiante: {str(e)}"
 

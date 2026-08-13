@@ -16,11 +16,21 @@ import {
   HardDrive,
 } from "lucide-react";
 
-export function AdminDashboard() {
+type NavItem = { to: string; label: string; icon: any };
+
+const adminNav: NavItem[] = [
+  { to: "/dashboard", label: "Inicio", icon: Wallet },
+  { to: "/pagos", label: "Pagos", icon: Wallet },
+  { to: "/respaldos", label: "Copias de Seguridad", icon: DatabaseBackup },
+  { to: "/configuracion", label: "Configuración", icon: ShieldCheck },
+];
+
+export function AdminDashboard({ navItems }: { navItems?: NavItem[] }) {
   return (
     <AppLayout
       title="Panel de Administración"
       subtitle="Control financiero, usuarios y respaldos del sistema"
+      navItems={navItems ?? adminNav}
     >
       {/* Métricas */}
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

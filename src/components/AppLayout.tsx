@@ -1,11 +1,14 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Home, GraduationCap, Wallet, DatabaseBackup, Settings, LogOut, GraduationCap as Logo, Bell, Search, Sun, Moon } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "@/hooks/use-theme";
 
 type NavItem = { to: string; label: string; icon: ComponentType<{ className?: string }> };
 
-const defaultNav: NavItem[] = [
+type UserRole = "teacher" | "admin" | "rector";
+
+const teacherNav: NavItem[] = [
   { to: "/dashboard", label: "Inicio", icon: Home },
   { to: "/notas", label: "Notas", icon: GraduationCap },
   { to: "/pagos", label: "Pagos", icon: Wallet },
@@ -13,8 +16,36 @@ const defaultNav: NavItem[] = [
   { to: "/configuracion", label: "Configuración", icon: Settings },
 ];
 
+const adminNav: NavItem[] = [
+  { to: "/dashboard", label: "Inicio", icon: Home },
+  { to: "/pagos", label: "Pagos", icon: Wallet },
+  { to: "/respaldos", label: "Copias de Seguridad", icon: DatabaseBackup },
+  { to: "/configuracion", label: "Configuración", icon: Settings },
+];
+
+const rectorNav: NavItem[] = [
+  { to: "/dashboard", label: "Inicio", icon: Home },
+  { to: "/dashboard", label: "Estadísticas", icon: DatabaseBackup },
+  { to: "/pagos", label: "Finanzas", icon: Wallet },
+  { to: "/respaldos", label: "Copias de Seguridad", icon: DatabaseBackup },
+  { to: "/configuracion", label: "Auditoría", icon: Settings },
+];
+
 export function AppLayout({ children, title, subtitle, navItems }: { children: ReactNode; title: string; subtitle?: string; navItems?: NavItem[] }) {
-  const nav = navItems ?? defaultNav;
+  const [role, setRole] = useState<UserRole>(() => {
+    if (typeof window === "undefined") return "teacher";
+    const stored = window.sessionStorage.getItem("sgaf_role");
+    if (stored === "teacher" || stored === "admin" || stored === "rector") return stored;
+    return "teacher";
+  });
+
+  const nav = useMemo(() => {
+    if (navItems) return navItems;
+    if (role === "admin") return adminNav;
+    if (role === "rector") return rectorNav;
+    return teacherNav;
+  }, [navItems, role]);
+
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -26,38 +57,63 @@ export function AppLayout({ children, title, subtitle, navItems }: { children: R
   };
   return (
     <div className="flex min-h-screen w-full bg-background">
-      <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
-        <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+      <aside className="flex shrink-0">
+        <div className="flex h-screen w-20 flex-col items-center border-r border-sidebar-border bg-sidebar py-5">
+          <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
             <Logo className="h-5 w-5" />
           </div>
-          <div className="leading-tight">
-            <div className="text-sm font-bold tracking-tight">SGAF</div>
-            <div className="text-[11px] text-muted-foreground">Gestión Escolar</div>
+          <div className="flex flex-1 flex-col items-center gap-2">
+            {nav.map((item) => {
+              const active = pathname === item.to;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to as any}
+                  className={`flex h-11 w-11 items-center justify-center rounded-2xl transition-colors ${
+                    active
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent/60"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                </Link>
+              );
+            })}
           </div>
         </div>
-        <nav className="flex-1 px-3 py-5 space-y-1">
-          {nav.map((item) => {
-            const active = pathname === item.to;
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.to}
-                to={item.to as any}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                  active
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/60"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-                {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="border-t border-sidebar-border p-3">
+        <div className="hidden md:flex w-64 flex-col border-r border-sidebar-border bg-sidebar">
+          <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Logo className="h-5 w-5" />
+            </div>
+            <div className="leading-tight">
+              <div className="text-sm font-bold tracking-tight">SGAF</div>
+              <div className="text-[11px] text-muted-foreground">Gestión Escolar</div>
+            </div>
+          </div>
+          <nav className="flex-1 px-3 py-5 space-y-1">
+            {nav.map((item) => {
+              const active = pathname === item.to;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to as any}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                    active
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent/60"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                  {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />}
+                </Link>
+              );
+            })}
+          </nav>
+          <div className="border-t border-sidebar-border p-3">
           <button
             type="button"
             onClick={handleLogout}

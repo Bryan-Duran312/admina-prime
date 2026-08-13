@@ -12,6 +12,16 @@ export const Route = createFileRoute("/dashboard")({
 
 type Role = "teacher" | "admin" | "rector";
 
+type NavItem = { to: string; label: string; icon: any };
+
+const teacherNav: NavItem[] = [
+  { to: "/dashboard", label: "Inicio", icon: Users },
+  { to: "/notas", label: "Notas", icon: GraduationCap },
+  { to: "/pagos", label: "Pagos", icon: Wallet },
+  { to: "/respaldos", label: "Copias de Seguridad", icon: DatabaseBackup },
+  { to: "/configuracion", label: "Configuración", icon: Settings },
+];
+
 function DashboardRoute() {
   const [role, setRole] = useState<Role>(() => {
     if (typeof window === "undefined") return "teacher";
@@ -66,7 +76,7 @@ function DashboardRoute() {
 
 function Dashboard() {
   return (
-    <AppLayout title="Tablero Principal" subtitle="Resumen general del estado del colegio">
+    <AppLayout title="Tablero Principal" subtitle="Resumen general del estado del colegio" navItems={teacherNav}>
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         <MetricCard
           icon={Users}
