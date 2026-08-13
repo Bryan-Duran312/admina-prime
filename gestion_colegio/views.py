@@ -6,8 +6,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.core.exceptions import PermissionDenied
 from django.db.models import Sum
 from django.http import JsonResponse
-from datetime import datetime
-from .models import Estudiante, Pago, Nota, HistorialModificacion
+from datetime import date, datetime
+from .models import Estudiante, Pago, Nota, HistorialModificacion, Asistencia
 
 
 def get_user_rol(user):
@@ -49,7 +49,7 @@ def vista_inicio(request):
 
     rol = get_user_rol(request.user)
     if rol == 'PROFESOR':
-        return redirect('registrar_nota')
+        return redirect('dashboard_docente')
 
     return render(request, 'gestion_colegio/inicio.html', {
         'usuario': request.user,
@@ -60,6 +60,36 @@ def vista_inicio(request):
         'recientes': [],
         'monthly_income_labels': ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
         'monthly_income_values': [120000, 150000, 90000, 180000, 200000, 130000],
+    })
+
+
+def _get_queryset_notas_docente(user):
+    if user.is_superuser:
+        return Nota.objects.all().order_by('-fecha_registro')
+    return Nota.objects.filter(profesor_que_registro=user).order_by('-fecha_registro')
+
+
+def vista_dashboard_docente(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'PROFESOR':
+        messages.warning(request, 'La vista docente es exclusiva para el personal docente.')
+        return redirect('panel_inicio')
+
+    total_estudiantes = Estudiante.objects.count()
+    grados_asignados = Estudiante.objects.values_list('grado', flat=True).distinct().count()
+    notas_registradas = _get_queryset_notas_docente(request.user).count()
+    asistencias_hoy = Asistencia.objects.filter(fecha=date.today(), registrado_por=request.user).count()
+
+    return render(request, 'gestion_colegio/docente_dashboard.html', {
+        'user_rol': rol,
+        'total_estudiantes': total_estudiantes,
+        'grados_asignados': grados_asignados,
+        'notas_registradas': notas_registradas,
+        'asistencias_hoy': asistencias_hoy,
+        'mis_notas': _get_queryset_notas_docente(request.user)[:5],
     })
 
 
@@ -113,6 +143,18 @@ def vista_registrar_nota(request):
         messages.warning(request, 'El módulo de calificación es de uso exclusivo para el personal docente.')
         return redirect('panel_inicio')
 
+    return redirect('docente_registrar_nota')
+
+
+def vista_docente_registrar_nota(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'PROFESOR':
+        messages.warning(request, 'El módulo de calificación es de uso exclusivo para el personal docente.')
+        return redirect('panel_inicio')
+
     mensaje = None
     error = None
 
@@ -135,16 +177,27 @@ def vista_registrar_nota(request):
 
     estudiantes = Estudiante.objects.all()
 
-    if request.user.is_superuser:
-        mis_notas = Nota.objects.all().order_by('-fecha_registro')
-    else:
-        mis_notas = Nota.objects.filter(profesor_que_registro=request.user).order_by('-fecha_registro')
-
-    return render(request, 'gestion_colegio/registrar_nota.html', {
+    return render(request, 'gestion_colegio/docente_registrar_nota.html', {
         'estudiantes': estudiantes,
-        'mis_notas': mis_notas,
         'mensaje': mensaje,
         'error': error,
+        'user_rol': rol,
+    })
+
+
+def vista_docente_historial_notas(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'PROFESOR':
+        messages.warning(request, 'El historial de notas es exclusivo del personal docente.')
+        return redirect('panel_inicio')
+
+    mis_notas = _get_queryset_notas_docente(request.user)
+
+    return render(request, 'gestion_colegio/docente_historial_notas.html', {
+        'mis_notas': mis_notas,
         'user_rol': rol,
     })
 
@@ -169,6 +222,57 @@ def vista_reportes_director(request):
         'ultimas_notas': ultimas_notas,
         'historial_cambios': historial_cambios,
         'user_rol': rol,
+    })
+
+
+GRADOS_ACADEMICOS = [
+    'Transición', '1° Grado', '2° Grado', '3° Grado', '4° Grado', '5° Grado',
+    '6° Grado', '7° Grado', '8° Grado', '9° Grado', '10° Grado', '11° Grado'
+]
+
+
+def vista_asistencia_por_grado(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'PROFESOR':
+        raise PermissionDenied('La asistencia por grado es exclusiva del personal docente.')
+
+    grado_seleccionado = request.GET.get('grado') or '5° Grado'
+    if grado_seleccionado not in GRADOS_ACADEMICOS:
+        grado_seleccionado = '5° Grado'
+
+    estudiantes = Estudiante.objects.filter(grado=grado_seleccionado).order_by('apellido', 'nombre')
+    fecha_hoy = date.today().strftime('%d/%m/%Y')
+    mensaje = None
+    error = None
+
+    if request.method == 'POST':
+        try:
+            for estudiante in estudiantes:
+                estado = request.POST.get(f'estado_{estudiante.id}', 'AUSENTE')
+                Asistencia.objects.update_or_create(
+                    estudiante=estudiante,
+                    fecha=date.today(),
+                    defaults={
+                        'grado': grado_seleccionado,
+                        'estado': estado,
+                        'registrado_por': request.user,
+                    },
+                )
+            mensaje = f"✅ Asistencia del día registrada para {grado_seleccionado}."
+        except Exception as exc:
+            error = f"Error al guardar la asistencia: {str(exc)}"
+
+    return render(request, 'gestion_colegio/asistencia_grado.html', {
+        'user_rol': rol,
+        'grados_academicos': GRADOS_ACADEMICOS,
+        'grado_seleccionado': grado_seleccionado,
+        'estudiantes': estudiantes,
+        'fecha_hoy': fecha_hoy,
+        'mensaje': mensaje,
+        'error': error,
     })
 
 

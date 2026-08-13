@@ -43,3 +43,18 @@ class NotaCorrectionAjaxTests(TestCase):
 
         self.nota.refresh_from_db()
         self.assertEqual(str(self.nota.valor_nota), '4.50')
+
+    def test_teacher_dashboard_and_split_note_views_are_available(self):
+        self.client.login(username='profesor', password='secure123')
+
+        dashboard = self.client.get(reverse('dashboard_docente'))
+        self.assertEqual(dashboard.status_code, 200)
+        self.assertContains(dashboard, 'Bienvenido de nuevo')
+
+        register = self.client.get(reverse('docente_registrar_nota'))
+        self.assertEqual(register.status_code, 200)
+        self.assertContains(register, 'Registrar Calificación')
+
+        history = self.client.get(reverse('docente_historial_notas'))
+        self.assertEqual(history.status_code, 200)
+        self.assertContains(history, 'Historial de Calificaciones')

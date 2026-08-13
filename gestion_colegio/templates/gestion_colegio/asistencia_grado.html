@@ -1,0 +1,84 @@
+{% extends 'gestion_colegio/base.html' %}
+
+{% block title %}SGAF - Asistencia por Grado{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h2 class="mb-1">Lista de Asistencia por Grado</h2>
+            <p class="mb-0 text-muted">Registro del día para estudiantes activos del grado seleccionado.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            {% for grado in grados_academicos %}
+                <a href="{% url 'asistencia_grado' %}?grado={{ grado|urlencode }}"
+                   class="btn btn-sm {% if grado == grado_seleccionado %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    {{ grado }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if mensaje %}<div class="alert alert-success">{{ mensaje }}</div>{% endif %}
+    {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+
+    <div class="card p-3 shadow-sm">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+                <div>
+                    <h4 class="mb-0">Grado: <span class="text-primary">{{ grado_seleccionado }}</span></h4>
+                </div>
+                <div class="text-muted fw-semibold">Fecha actual: {{ fecha_hoy }}</div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Nombre Completo</th>
+                            <th>Grado</th>
+                            <th>Asistencia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for estudiante in estudiantes %}
+                        <tr>
+                            <td><strong>{{ estudiante.nombre }} {{ estudiante.apellido }}</strong></td>
+                            <td><span class="badge bg-primary-subtle text-primary">{{ estudiante.grado }}</span></td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-3">
+                                    <label class="d-flex align-items-center gap-2 mb-0">
+                                        <input type="radio" name="estado_{{ estudiante.id }}" value="PRESENTE" checked>
+                                        <span>Presente</span>
+                                    </label>
+                                    <label class="d-flex align-items-center gap-2 mb-0">
+                                        <input type="radio" name="estado_{{ estudiante.id }}" value="AUSENTE">
+                                        <span>Ausente</span>
+                                    </label>
+                                    <label class="d-flex align-items-center gap-2 mb-0">
+                                        <input type="radio" name="estado_{{ estudiante.id }}" value="EXCUSA">
+                                        <span>Excusa</span>
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-muted">No hay estudiantes registrados para este grado.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if estudiantes %}
+            <div class="d-flex justify-content-end mt-3">
+                <button type="submit" class="btn btn-primary">Guardar Asistencia del Día</button>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}

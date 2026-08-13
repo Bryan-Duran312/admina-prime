@@ -1,0 +1,65 @@
+{% extends 'gestion_colegio/base.html' %}
+
+{% block title %}SGAF - Registrar Calificación{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .teacher-section-card {
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        border-radius: 18px;
+        background: rgba(255,255,255,0.72);
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+    }
+
+    html[data-theme="dark"] .teacher-section-card {
+        background: rgba(15, 23, 42, 0.9) !important;
+        border-color: rgba(71, 85, 105, 0.9) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="teacher-section-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+                <h2 class="mb-1">Registrar Calificación</h2>
+                <p class="mb-0 text-muted">Ingrese las notas asignadas a los estudiantes.</p>
+            </div>
+            <a href="{% url 'dashboard_docente' %}" class="btn btn-outline-secondary btn-sm">Volver al inicio</a>
+        </div>
+
+        {% if mensaje %}<div class="alert alert-success">{{ mensaje }}</div>{% endif %}
+        {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">Estudiante y Grado</label>
+                    <select name="estudiante" class="form-select" required>
+                        <option value="" disabled selected>-- Seleccione un Estudiante --</option>
+                        {% for est in estudiantes %}
+                            <option value="{{ est.id }}">{{ est.nombre }} {{ est.apellido }} (Grado: {{ est.grado }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Materia / Asignatura</label>
+                    <input type="text" name="materia" class="form-control" placeholder="Ej: Matemáticas, Ciencias" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Nota (0.00 a 5.00)</label>
+                    <input type="number" step="0.01" min="0" max="5" name="valor_nota" class="form-control" placeholder="Ej: 4.50" required>
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-warning w-100">Asignar Nota al Estudiante</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

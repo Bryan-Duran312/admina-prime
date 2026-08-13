@@ -223,6 +223,48 @@
             box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.18);
         }
 
+        .teacher-accordion-item {
+            border: 1px solid var(--sgaf-border);
+            border-radius: 14px;
+            background: rgba(148, 163, 184, 0.04);
+            overflow: hidden;
+        }
+
+        .teacher-accordion-toggle {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            padding: 0.8rem 0.9rem;
+            border: none;
+            background: transparent;
+            color: var(--sgaf-text);
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .teacher-submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+            background: rgba(15, 23, 42, 0.02);
+        }
+
+        .teacher-submenu.active {
+            max-height: 520px;
+        }
+
+        .teacher-submenu a {
+            padding: 0.7rem 1rem 0.7rem 2.05rem;
+            color: var(--sgaf-text);
+            opacity: 0.9;
+            font-size: 0.92rem;
+        }
+
+        .teacher-submenu .sub-icon {
+            opacity: 0.7;
+        }
+
         .nav-menu .icon {
             width: 1.6rem;
             text-align: center;
@@ -491,7 +533,41 @@
                                     <li><a href="{% url 'panel_inicio' %}" class="{% if request.path == '/inicio/' %}active{% endif %}"><span class="icon">🏠</span>Inicio</a></li>
                                     <li><a href="{% url 'reportes_director' %}" class="{% if 'reportes' in request.path %}active{% endif %}"><span class="icon">📊</span>Reportes Financieros y Académicos</a></li>
                                 {% elif user_rol == 'PROFESOR' %}
-                                    <li><a href="{% url 'registrar_nota' %}" class="{% if 'registrar-nota' in request.path %}active{% endif %}"><span class="icon">📝</span>Gestión de Notas</a></li>
+                                    <li><a href="{% url 'dashboard_docente' %}" class="{% if request.path == '/docente/' %}active{% endif %}"><span class="icon">🏠</span>Inicio</a></li>
+                                    <li>
+                                        <div class="teacher-accordion-item">
+                                            <button type="button" class="teacher-accordion-toggle" data-target="docente-notas-menu" aria-expanded="false">
+                                                <span class="icon">📝</span>
+                                                <span>Gestión de Notas</span>
+                                            </button>
+                                            <div id="docente-notas-menu" class="teacher-submenu">
+                                                <a href="{% url 'docente_registrar_nota' %}" class="{% if request.path == '/docente/registrar-nota/' %}active{% endif %}"><span class="sub-icon">•</span>Registrar Calificación</a>
+                                                <a href="{% url 'docente_historial_notas' %}" class="{% if request.path == '/docente/historial-notas/' %}active{% endif %}"><span class="sub-icon">•</span>Historial de Calificaciones</a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="teacher-accordion-item">
+                                            <button type="button" class="teacher-accordion-toggle" data-target="docente-grados-menu" aria-expanded="false">
+                                                <span class="icon">🎓</span>
+                                                <span>Grados Académicos</span>
+                                            </button>
+                                            <div id="docente-grados-menu" class="teacher-submenu">
+                                                <a href="{% url 'asistencia_grado' %}?grado=Transición" class="{% if 'grado=Transición' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>Transición</a>
+                                                <a href="{% url 'asistencia_grado' %}?grado=1°%20Grado" class="{% if 'grado=1%C2%B0%20Grado' in request.get_full_path or 'grado=1°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>1° Grado</a>
+                                                <a href="{% url 'asistencia_grado' %}?grado=2°%20Grado" class="{% if 'grado=2%C2%B0%20Grado' in request.get_full_path or 'grado=2°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>2° Grado</a>
+                                                <a href="{% url 'asistencia_grado' %}?grado=3°%20Grado" class="{% if 'grado=3%C2%B0%20Grado' in request.get_full_path or 'grado=3°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>3° Grado</a>
+                                                <a href="{% url 'asistencia_grado' %}?grado=4°%20Grado" class="{% if 'grado=4%C2%B0%20Grado' in request.get_full_path or 'grado=4°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>4° Grado</a>
+                                                <a href="{% url 'asistencia_grado' %}?grado=5°%20Grado" class="{% if 'grado=5%C2%B0%20Grado' in request.get_full_path or 'grado=5°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>5° Grado</a>
+                                                <a href="{% url 'asistencia_grado' %}?grado=6°%20Grado" class="{% if 'grado=6%C2%B0%20Grado' in request.get_full_path or 'grado=6°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>6° Grado</a>
+                                                <a href="{% url 'asistencia_grado' %}?grado=7°%20Grado" class="{% if 'grado=7%C2%B0%20Grado' in request.get_full_path or 'grado=7°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>7° Grado</a>
+                                                <a href="{% url 'asistencia_grado' %}?grado=8°%20Grado" class="{% if 'grado=8%C2%B0%20Grado' in request.get_full_path or 'grado=8°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>8° Grado</a>
+                                                <a href="{% url 'asistencia_grado' %}?grado=9°%20Grado" class="{% if 'grado=9%C2%B0%20Grado' in request.get_full_path or 'grado=9°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>9° Grado</a>
+                                                <a href="{% url 'asistencia_grado' %}?grado=10°%20Grado" class="{% if 'grado=10%C2%B0%20Grado' in request.get_full_path or 'grado=10°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>10° Grado</a>
+                                                <a href="{% url 'asistencia_grado' %}?grado=11°%20Grado" class="{% if 'grado=11%C2%B0%20Grado' in request.get_full_path or 'grado=11°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>11° Grado</a>
+                                            </div>
+                                        </div>
+                                    </li>
                                 {% else %}
                                     <li><a href="{% url 'panel_inicio' %}" class="{% if request.path == '/inicio/' %}active{% endif %}"><span class="icon">🏠</span>Inicio</a></li>
                                     <li><a href="{% url 'gestion_estudiantes' %}" class="{% if 'estudiantes' in request.path %}active{% endif %}"><span class="icon">🎓</span>Gestión de Estudiantes</a></li>
@@ -536,6 +612,36 @@
                         applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
                     });
                 }
+
+                document.querySelectorAll('.teacher-accordion-toggle').forEach(function (toggle) {
+                    toggle.addEventListener('click', function () {
+                        const targetId = this.dataset.target;
+                        const target = document.getElementById(targetId);
+                        if (!target) return;
+
+                        const isOpen = target.classList.contains('active');
+                        target.classList.toggle('active', !isOpen);
+                        this.setAttribute('aria-expanded', String(!isOpen));
+                    });
+                });
+
+                document.querySelectorAll('.teacher-submenu a').forEach(function (link) {
+                    link.addEventListener('click', function () {
+                        const submenu = this.closest('.teacher-submenu');
+                        if (!submenu) return;
+
+                        const accordionItem = submenu.closest('.teacher-accordion-item');
+                        if (!accordionItem) return;
+
+                        const toggle = accordionItem.querySelector('.teacher-accordion-toggle');
+                        if (!toggle) return;
+
+                        setTimeout(function () {
+                            submenu.classList.remove('active');
+                            toggle.setAttribute('aria-expanded', 'false');
+                        }, 1200 + Math.floor(Math.random() * 300));
+                    });
+                });
 
                 document.querySelectorAll('.cyber-table').forEach(function (table) {
                     if (window.DataTable && !table.dataset.dataTableInitialized) {

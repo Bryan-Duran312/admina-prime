@@ -1,0 +1,195 @@
+{% extends 'gestion_colegio/base.html' %}
+
+{% block title %}SGAF - Inicio Docente{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .quick-access-card {
+        background: #f8fafc;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 0.9rem;
+        color: #0f172a;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+        transition: all 0.2s ease;
+    }
+
+    .quick-access-card:hover {
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .quick-access-card .quick-access-title {
+        color: #0f172a;
+        font-weight: 700;
+        margin-bottom: 0.35rem;
+    }
+
+    .quick-access-card .quick-access-text {
+        color: #475569;
+    }
+
+    .teacher-note-item {
+        background: rgba(248, 250, 252, 0.85);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 0.75rem;
+        padding: 0.8rem 0.9rem;
+        margin-bottom: 0.65rem;
+    }
+
+    .teacher-note-item .student-name {
+        color: #0f172a;
+        font-weight: 600;
+    }
+
+    .teacher-note-item .student-subject {
+        color: #475569;
+    }
+
+    html[data-theme="dark"] .quick-access-card {
+        background: #1e293b !important;
+        border: 1px solid rgba(71, 85, 105, 0.9) !important;
+        color: #f8fafc !important;
+    }
+
+    html[data-theme="dark"] .quick-access-card .quick-access-title,
+    html[data-theme="dark"] .quick-access-card .quick-access-text,
+    html[data-theme="dark"] .teacher-note-item .student-name,
+    html[data-theme="dark"] .teacher-note-item .student-subject,
+    html[data-theme="dark"] .teacher-note-item .badge,
+    html[data-theme="dark"] .teacher-note-item strong,
+    html[data-theme="dark"] .teacher-note-item small,
+    html[data-theme="dark"] .teacher-note-item span {
+        color: #f8fafc !important;
+    }
+
+    html[data-theme="dark"] .teacher-note-item {
+        background: #1e293b !important;
+        border: 1px solid rgba(71, 85, 105, 0.9) !important;
+        color: #f8fafc !important;
+    }
+
+    html[data-theme="dark"] .quick-access-card .quick-access-text,
+    html[data-theme="dark"] .teacher-note-item .student-subject {
+        color: #cbd5e1 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row g-4 align-items-stretch">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                        <div>
+                            <span class="badge text-bg-warning-subtle text-warning fw-semibold mb-2">Panel docente</span>
+                            <h2 class="mb-1">¡Bienvenido de nuevo, Profesor/a!</h2>
+                            <p class="mb-0 text-muted">Aquí tienes un resumen rápido del estado académico y de asistencia de tus estudiantes.</p>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{% url 'docente_registrar_nota' %}" class="btn btn-warning">Registrar notas</a>
+                            <a href="{% url 'docente_historial_notas' %}" class="btn btn-outline-secondary">Ver historial</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase">Total de estudiantes</div>
+                    <div class="display-6 fw-bold mt-2">{{ total_estudiantes }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase">Grados asignados</div>
+                    <div class="display-6 fw-bold mt-2">{{ grados_asignados }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase">Calificaciones pendientes</div>
+                    <div class="display-6 fw-bold mt-2">{{ notas_registradas }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase">Asistencias del día</div>
+                    <div class="display-6 fw-bold mt-2">{{ asistencias_hoy }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Accesos rápidos</h5>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <a href="{% url 'docente_registrar_nota' %}" class="text-decoration-none text-reset">
+                                <div class="quick-access-card p-3 h-100">
+                                    <div class="quick-access-title">Registrar Calificación</div>
+                                    <small class="quick-access-text">Crea nuevas notas y asigna valoraciones.</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{% url 'docente_historial_notas' %}" class="text-decoration-none text-reset">
+                                <div class="quick-access-card p-3 h-100">
+                                    <div class="quick-access-title">Ver Historial</div>
+                                    <small class="quick-access-text">Consulta y corrige las calificaciones subidas.</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{% url 'asistencia_grado' %}?grado=5°%20Grado" class="text-decoration-none text-reset">
+                                <div class="quick-access-card p-3 h-100">
+                                    <div class="quick-access-title">Tomar Asistencia</div>
+                                    <small class="quick-access-text">Registra la asistencia por grado del día.</small>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="mb-3">Últimas notas</h5>
+                    <div class="list-group list-group-flush">
+                        {% for nota in mis_notas %}
+                        <div class="teacher-note-item">
+                            <div class="d-flex justify-content-between gap-3 align-items-center">
+                                <div>
+                                    <div class="student-name">{{ nota.estudiante.nombre }} {{ nota.estudiante.apellido }}</div>
+                                    <small class="student-subject">{{ nota.materia }}</small>
+                                </div>
+                                <span class="badge text-bg-warning-subtle text-warning">{{ nota.valor_nota }}</span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-muted">Todavía no hay notas registradas.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

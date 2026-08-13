@@ -70,3 +70,24 @@ class HistorialModificacion(models.Model):
 
     def __str__(self):
         return f"Cambio {self.tipo} por {self.usuario_que_modifico.username} el {self.fecha_modificacion}"
+
+
+# 6. TABLA DE ASISTENCIA POR GRADO (Docente)
+class Asistencia(models.Model):
+    ESTADOS = [
+        ('PRESENTE', 'Presente'),
+        ('AUSENTE', 'Ausente'),
+        ('EXCUSA', 'Con Excusa'),
+    ]
+
+    estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE)
+    fecha = models.DateField()
+    grado = models.CharField(max_length=30)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='PRESENTE')
+    registrado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        unique_together = ('estudiante', 'fecha')
+
+    def __str__(self):
+        return f"{self.estudiante} - {self.fecha}: {self.estado}"
