@@ -1,7 +1,11 @@
+from decimal import Decimal, InvalidOperation
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.core.exceptions import PermissionDenied
 from django.db.models import Sum
+from django.http import JsonResponse
 from datetime import datetime
 from .models import Estudiante, Pago, Nota, HistorialModificacion
 
@@ -174,38 +178,66 @@ def vista_editar_nota(request, nota_id):
 
     rol = get_user_rol(request.user)
     if rol != 'PROFESOR':
-        messages.warning(request, 'La corrección de notas es exclusiva del personal docente.')
-        return redirect('panel_inicio')
+        message = 'La corrección de notas es exclusiva del personal docente.'
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': message}, status=403)
+        raise PermissionDenied(message)
 
-    nota = Nota.objects.get(id=nota_id)
-    mensaje = None
-    error = None
+    nota = get_object_or_404(Nota, id=nota_id)
 
-    if request.method == 'POST':
-        nueva_nota = request.POST.get('valor_nota')
-        justificacion = request.POST.get('justificacion')
+    if request.method != 'POST':
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': 'Método no permitido.'}, status=405)
+        return redirect('registrar_nota')
 
-        if not justificacion.strip():
-            error = "⚠️ Es obligatorio escribir una justificación para corregir la nota."
-        else:
-            valor_anterior = str(nota.valor_nota)
-            HistorialModificacion.objects.create(
-                tipo='NOTA',
-                usuario_que_modifico=request.user,
-                valor_anterior=f"Nota de {nota.materia}: {valor_anterior}",
-                valor_nuevo=f"Nota de {nota.materia}: {nueva_nota}",
-                justificacion=justificacion
-            )
-            nota.valor_nota = nueva_nota
-            nota.save()
-            mensaje = "✅ La nota ha sido corregida y el cambio se ha registrado en la Bitácora de Auditoría."
+    nueva_nota = request.POST.get('valor_nota')
+    justificacion = (request.POST.get('justificacion') or '').strip()
 
-    return render(request, 'gestion_colegio/editar_nota.html', {
-        'nota': nota,
-        'mensaje': mensaje,
-        'error': error,
-        'user_rol': rol,
-    })
+    if not nueva_nota or not justificacion:
+        message = '⚠️ Es obligatorio escribir una justificación para corregir la nota.'
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': message}, status=400)
+        messages.error(request, message)
+        return redirect('registrar_nota')
+
+    try:
+        valor_decimal = Decimal(str(nueva_nota).replace(',', '.'))
+    except InvalidOperation:
+        message = '⚠️ La nota ingresada no es válida.'
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': message}, status=400)
+        messages.error(request, message)
+        return redirect('registrar_nota')
+
+    if valor_decimal < 0 or valor_decimal > 5:
+        message = '⚠️ La nota debe estar entre 0.00 y 5.00.'
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': message}, status=400)
+        messages.error(request, message)
+        return redirect('registrar_nota')
+
+    valor_anterior = str(nota.valor_nota)
+    HistorialModificacion.objects.create(
+        tipo='NOTA',
+        usuario_que_modifico=request.user,
+        valor_anterior=f"Nota de {nota.materia}: {valor_anterior}",
+        valor_nuevo=f"Nota de {nota.materia}: {nueva_nota}",
+        justificacion=justificacion,
+    )
+    nota.valor_nota = valor_decimal
+    nota.save()
+
+    success_message = '¡Corrección registrada con éxito!'
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'message': success_message,
+            'nota_nueva': str(nota.valor_nota),
+            'nota_id': nota.id,
+        })
+
+    messages.success(request, success_message)
+    return redirect('registrar_nota')
 
 
 def vista_gestion_estudiantes(request):

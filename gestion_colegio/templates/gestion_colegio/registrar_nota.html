@@ -2,12 +2,179 @@
 
 {% block title %}SGAF - Registrar Nota{% endblock %}
 
+{% block extra_styles %}
+<style>
+    /* Modal de corrección - tema oscuro y claro */
+    .modal-backdrop {
+        background-color: rgba(15, 23, 42, 0.72);
+    }
+
+    .modal-content {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        box-shadow: 0 18px 40px rgba(2, 6, 23, 0.12);
+        color: #0f172a;
+    }
+
+    .dark .modal-content,
+    html[data-theme="dark"] .modal-content,
+    .dark .modal-header,
+    html[data-theme="dark"] .modal-header,
+    .dark .modal-body,
+    html[data-theme="dark"] .modal-body {
+        background-color: #0f172a !important;
+        border-color: #334155 !important;
+        color: #ffffff !important;
+    }
+
+    .modal-header,
+    .modal-body {
+        background: transparent;
+    }
+
+    .modal-title {
+        color: #0f172a;
+        font-weight: 700;
+    }
+
+    .dark .modal-title,
+    html[data-theme="dark"] .modal-title {
+        color: #ffffff !important;
+    }
+
+    .modal-header .btn-close {
+        opacity: 0.9;
+        filter: none;
+        border-radius: 9999px;
+    }
+
+    .dark .modal-header .btn-close,
+    html[data-theme="dark"] .modal-header .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
+    }
+
+    .modal-body .form-label,
+    .modal-body label {
+        color: #334155 !important;
+        font-weight: 600;
+    }
+
+    .dark .modal-body .form-label,
+    html[data-theme="dark"] .modal-body .form-label,
+    .dark .modal-body label,
+    html[data-theme="dark"] .modal-body label {
+        color: #e2e8f0 !important;
+    }
+
+    .modal-body .form-control,
+    .modal-body textarea,
+    .modal-body input {
+        background-color: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        color: #0f172a;
+        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .dark .modal-body .form-control,
+    html[data-theme="dark"] .modal-body .form-control,
+    .dark .modal-body textarea,
+    html[data-theme="dark"] .modal-body textarea,
+    .dark .modal-body input,
+    html[data-theme="dark"] .modal-body input {
+        background-color: #1e293b !important;
+        border-color: #475569 !important;
+        color: #ffffff !important;
+    }
+
+    .modal-body .form-control::placeholder,
+    .modal-body textarea::placeholder {
+        color: #64748b;
+    }
+
+    .dark .modal-body .form-control::placeholder,
+    html[data-theme="dark"] .modal-body .form-control::placeholder,
+    .dark .modal-body textarea::placeholder,
+    html[data-theme="dark"] .modal-body textarea::placeholder {
+        color: #cbd5e1 !important;
+    }
+
+    .modal-body .form-control:focus,
+    .modal-body textarea:focus,
+    .modal-body input:focus {
+        background-color: #ffffff;
+        border-color: rgba(59, 130, 246, 0.55);
+        box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.12);
+        color: #0f172a;
+    }
+
+    .dark .modal-body .form-control:focus,
+    html[data-theme="dark"] .modal-body .form-control:focus,
+    .dark .modal-body textarea:focus,
+    html[data-theme="dark"] .modal-body textarea:focus,
+    .dark .modal-body input:focus,
+    html[data-theme="dark"] .modal-body input:focus {
+        background-color: #1e293b !important;
+        border-color: rgba(125, 211, 252, 0.7) !important;
+        box-shadow: 0 0 0 0.2rem rgba(125, 211, 252, 0.12);
+        color: #ffffff !important;
+    }
+
+    .modal-body .btn-outline-secondary {
+        background-color: #ffffff;
+        border: 1px solid #cbd5e1;
+        color: #334155;
+    }
+
+    .dark .modal-body .btn-outline-secondary,
+    html[data-theme="dark"] .modal-body .btn-outline-secondary {
+        background-color: #0f172a !important;
+        border-color: #475569 !important;
+        color: #e2e8f0 !important;
+    }
+
+    .modal-body .btn-outline-secondary:hover {
+        background-color: #f8fafc;
+        border-color: #94a3b8;
+        color: #0f172a;
+    }
+
+    .dark .modal-body .btn-outline-secondary:hover,
+    html[data-theme="dark"] .modal-body .btn-outline-secondary:hover {
+        background-color: #1e293b !important;
+        border-color: #64748b !important;
+        color: #ffffff !important;
+    }
+
+    .modal-body .btn-warning {
+        background: linear-gradient(135deg, #f3b228 0%, #d99f18 100%);
+        border: 1px solid rgba(234, 179, 8, 0.5);
+        color: #111827;
+        font-weight: 700;
+    }
+
+    #modalError {
+        background: rgba(127, 29, 29, 0.08);
+        border: 1px solid rgba(220, 38, 38, 0.2);
+        color: #991b1b;
+    }
+
+    html[data-theme="light"] .modal-backdrop,
+    .modal-backdrop {
+        background-color: rgba(15, 23, 42, 0.35);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <a href="{% url 'panel_inicio' %}" class="text-decoration-none">← Volver al Panel</a>
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <a href="{% url 'panel_inicio' %}" class="text-decoration-none">← Volver al Panel</a>
+    </div>
 
     <div class="card my-3 p-3">
-        <h2>📝 Registrar Calificación</h2>
+        <h2>Registrar Calificación</h2>
         <p>Ingrese las notas asignadas a los alumnos.</p>
 
         {% if mensaje %}<div class="alert alert-success">{{ mensaje }}</div>{% endif %}
@@ -44,7 +211,7 @@
     </div>
 
     <div class="card p-3">
-        <h3>📋 Historial de Calificaciones Subidas</h3>
+        <h3>Historial de Calificaciones Subidas</h3>
         <p>Listado de notas registradas por su usuario. Puede hacer correcciones con justificación de auditoría.</p>
 
         <div class="table-responsive">
@@ -56,25 +223,172 @@
                         <th>Materia</th>
                         <th>Nota</th>
                         <th>Fecha</th>
-                        <th>Acción</th>
+                        {% if user_rol == 'PROFESOR' %}<th>Acción</th>{% endif %}
                     </tr>
                 </thead>
                 <tbody>
                     {% for n in mis_notas %}
-                    <tr>
+                    <tr data-nota-row="{{ n.id }}">
                         <td><strong>{{ n.estudiante.nombre }} {{ n.estudiante.apellido }}</strong></td>
                         <td><span class="badge bg-primary-subtle text-primary">{{ n.estudiante.grado }}</span></td>
                         <td>{{ n.materia }}</td>
-                        <td><strong class="text-success">{{ n.valor_nota }}</strong></td>
+                        <td><strong class="text-success" data-note-value>{{ n.valor_nota }}</strong></td>
                         <td>{{ n.fecha_registro|date:"d/m/Y H:i" }}</td>
-                        <td><a href="{% url 'editar_nota' n.id %}" class="text-warning fw-bold">✏️ Corregir</a></td>
+                        {% if user_rol == 'PROFESOR' %}
+                        <td>
+                            <button type="button"
+                                    class="btn btn-link text-warning fw-bold p-0"
+                                    data-action="corregir-nota"
+                                    data-nota-id="{{ n.id }}"
+                                    data-estudiante="{{ n.estudiante.nombre }} {{ n.estudiante.apellido }}"
+                                    data-materia="{{ n.materia }}"
+                                    data-valor-nota="{{ n.valor_nota }}">
+                                Corregir
+                            </button>
+                        </td>
+                        {% endif %}
                     </tr>
                     {% empty %}
-                    <tr><td colspan="6" class="text-center">No has registrado notas todavía.</td></tr>
+                    <tr><td colspan="{% if user_rol == 'PROFESOR' %}6{% else %}5{% endif %}" class="text-center">No has registrado notas todavía.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="correccionModal" tabindex="-1" aria-labelledby="correccionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-white border border-slate-200 text-slate-900 dark:bg-slate-900 dark:border-slate-800 dark:text-white">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-slate-900 dark:text-white" id="correccionModalLabel">Corregir Nota</h5>
+                <button type="button" class="btn-close dark:opacity-100" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label text-slate-700 dark:text-slate-200">Estudiante</label>
+                    <input type="text" class="form-control bg-slate-50 text-slate-900 border-slate-200 dark:bg-slate-800 dark:text-white dark:border-slate-700" id="modalEstudiante" disabled>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-slate-700 dark:text-slate-200">Materia</label>
+                    <input type="text" class="form-control bg-slate-50 text-slate-900 border-slate-200 dark:bg-slate-800 dark:text-white dark:border-slate-700" id="modalMateria" disabled>
+                </div>
+
+                <form id="correccionForm" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="modalNuevaNota" class="form-label text-slate-700 dark:text-slate-200">Nueva Nota</label>
+                        <input type="number" step="0.01" min="0" max="5" name="valor_nota" id="modalNuevaNota" class="form-control bg-slate-50 text-slate-900 border-slate-200 dark:bg-slate-800 dark:text-white dark:border-slate-700" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="modalJustificacion" class="form-label text-slate-700 dark:text-slate-200">Motivo de la corrección (Obligatorio)</label>
+                        <textarea name="justificacion" id="modalJustificacion" class="form-control bg-slate-50 text-slate-900 border-slate-200 dark:bg-slate-800 dark:text-white dark:border-slate-700" rows="4" placeholder="Ej: Error de digitación en la revisión del examen parcial." required></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-2">
+                        <button type="button" class="btn btn-outline-secondary border-slate-300 text-slate-700 dark:border-slate-600 dark:text-slate-200 dark:bg-slate-900" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning">Guardar Corrección y Auditar</button>
+                    </div>
+                </form>
+
+                <div id="modalError" class="alert alert-danger mt-3 d-none mb-0"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1060;">
+    <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="toastMessage">¡Corrección registrada con éxito!</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modalEl = document.getElementById('correccionModal');
+        const modal = new bootstrap.Modal(modalEl);
+        const form = document.getElementById('correccionForm');
+        const errorBox = document.getElementById('modalError');
+        const successToast = document.getElementById('successToast');
+        const toastInstance = new bootstrap.Toast(successToast);
+
+        const openCorrectionModal = function (button) {
+            const estudiante = button.dataset.estudiante || '';
+            const materia = button.dataset.materia || '';
+            const valorActual = button.dataset.valorNota || '';
+            const notaId = button.dataset.notaId;
+
+            document.getElementById('modalEstudiante').value = estudiante;
+            document.getElementById('modalMateria').value = materia;
+            document.getElementById('modalNuevaNota').value = valorActual;
+            document.getElementById('modalJustificacion').value = '';
+            form.action = '/editar-nota/' + notaId + '/';
+            errorBox.classList.add('d-none');
+            errorBox.textContent = '';
+        };
+
+        document.querySelectorAll('[data-action="corregir-nota"]').forEach(function (button) {
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+                openCorrectionModal(this);
+                modal.show();
+            });
+        });
+
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new FormData(form),
+                credentials: 'same-origin'
+            });
+
+            let result;
+            try {
+                result = await response.json();
+            } catch (error) {
+                result = { success: false, message: 'No se pudo procesar la respuesta del servidor.' };
+            }
+
+            if (!response.ok || !result.success) {
+                errorBox.textContent = result.message || 'No se pudo guardar la corrección.';
+                errorBox.classList.remove('d-none');
+                return;
+            }
+
+            errorBox.classList.add('d-none');
+            modal.hide();
+
+            const noteId = form.action.match(/editar-nota\/(\d+)\/$/);
+            if (noteId && noteId[1]) {
+                const row = document.querySelector('[data-nota-row="' + noteId[1] + '"]');
+                if (row) {
+                    const noteValue = row.querySelector('[data-note-value]');
+                    if (noteValue) {
+                        noteValue.textContent = result.nota_nueva;
+                    }
+                    const actionCell = row.querySelector('button[data-action="corregir-nota"]');
+                    if (actionCell) {
+                        actionCell.dataset.valorNota = result.nota_nueva;
+                    }
+                }
+            }
+
+            document.getElementById('toastMessage').textContent = result.message || '¡Corrección registrada con éxito!';
+            toastInstance.show();
+            form.reset();
+        });
+    });
+</script>
 {% endblock %}
