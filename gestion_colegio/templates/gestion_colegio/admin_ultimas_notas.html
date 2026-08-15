@@ -1,0 +1,43 @@
+{% extends 'gestion_colegio/base.html' %}
+
+{% block title %}SGAF - Últimas Calificaciones Subidas{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h2 class="mb-1">Últimas Calificaciones Subidas</h2>
+            <p class="mb-0 text-muted">Historial académico global del sistema.</p>
+        </div>
+    </div>
+
+    <div class="card p-3">
+        <div class="table-responsive">
+            <table class="cyber-table table mt-3">
+                <thead>
+                    <tr>
+                        <th>Estudiante</th>
+                        <th>Materia</th>
+                        <th>Nota</th>
+                        <th>Fecha</th>
+                        <th>Profesor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for nota in ultimas_notas %}
+                    <tr>
+                        <td>{{ nota.estudiante.nombre }} {{ nota.estudiante.apellido }}</td>
+                        <td>{{ nota.materia }}</td>
+                        <td><strong>{{ nota.valor_nota }}</strong></td>
+                        <td>{{ nota.fecha_registro|date:"d/m/Y H:i" }}</td>
+                        <td>{{ nota.profesor_que_registro.username }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center">No hay notas registradas aún.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

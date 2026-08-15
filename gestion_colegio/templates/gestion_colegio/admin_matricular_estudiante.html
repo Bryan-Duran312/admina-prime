@@ -1,0 +1,40 @@
+{% extends 'gestion_colegio/base.html' %}
+
+{% block title %}SGAF - Matricular Estudiante{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h2 class="mb-1">Matricular Nuevo Estudiante</h2>
+            <p class="mb-0 text-muted">Formulario exclusivo de administración.</p>
+        </div>
+    </div>
+
+    {% if mensaje %}<div class="alert alert-success">{{ mensaje }}</div>{% endif %}
+    {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+
+    <div class="card p-3">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Nombre(s):</label>
+                    <input type="text" name="nombre" class="form-control" placeholder="Ej: María" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Apellido(s):</label>
+                    <input type="text" name="apellido" class="form-control" placeholder="Ej: Pérez" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Grado / Cursado:</label>
+                    <input type="text" name="grado" class="form-control" placeholder="Ej: 10°A" required>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Matricular Estudiante</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

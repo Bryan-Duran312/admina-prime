@@ -1,0 +1,43 @@
+{% extends 'gestion_colegio/base.html' %}
+
+{% block title %}SGAF - Auditoría de Modificaciones{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h2 class="mb-1">Auditoría de Modificaciones</h2>
+            <p class="mb-0 text-muted">Bitácora de correcciones realizadas por docentes.</p>
+        </div>
+    </div>
+
+    <div class="card p-3">
+        <div class="table-responsive">
+            <table class="cyber-table table mt-3">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Usuario</th>
+                        <th>Valor Anterior</th>
+                        <th>Valor Nuevo</th>
+                        <th>Justificación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cambio in historial_cambios %}
+                    <tr>
+                        <td>{{ cambio.fecha_modificacion|date:"d/m/Y H:i" }}</td>
+                        <td><strong>{{ cambio.usuario_que_modifico.username }}</strong></td>
+                        <td class="text-danger">{{ cambio.valor_anterior }}</td>
+                        <td class="text-success">{{ cambio.valor_nuevo }}</td>
+                        <td><em>"{{ cambio.justificacion }}"</em></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center">No se han realizado correcciones aún.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

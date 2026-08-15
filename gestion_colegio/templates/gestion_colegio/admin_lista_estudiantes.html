@@ -1,0 +1,39 @@
+{% extends 'gestion_colegio/base.html' %}
+
+{% block title %}SGAF - Estudiantes Matriculados{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h2 class="mb-1">Lista de Estudiantes Matriculados</h2>
+            <p class="mb-0 text-muted">Listado completo del alumnado activo.</p>
+        </div>
+    </div>
+
+    <div class="card p-3">
+        <div class="table-responsive">
+            <table class="cyber-table table mt-3">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                        <th>Grado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for est in estudiantes %}
+                    <tr>
+                        <td>#{{ est.id }}</td>
+                        <td><strong>{{ est.nombre }} {{ est.apellido }}</strong></td>
+                        <td><span class="badge bg-primary-subtle text-primary">{{ est.grado }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="text-center">No hay estudiantes matriculados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

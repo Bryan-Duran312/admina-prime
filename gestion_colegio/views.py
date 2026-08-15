@@ -21,6 +21,19 @@ def get_user_rol(user):
     return perfil.rol
 
 
+def _get_monthly_income_data():
+    current_year = datetime.now().year
+    labels = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    totals_by_month = {month: 0 for month in range(1, 13)}
+
+    for entry in Pago.objects.filter(fecha_pago__year=current_year).values('fecha_pago__month').annotate(total=Sum('monto')):
+        month_number = entry.get('fecha_pago__month')
+        if month_number:
+            totals_by_month[int(month_number)] = float(entry['total'] or 0)
+
+    return labels, [totals_by_month[month] for month in range(1, 13)]
+
+
 def vista_login(request):
     error = None
     if request.method == 'POST':
@@ -50,6 +63,10 @@ def vista_inicio(request):
     rol = get_user_rol(request.user)
     if rol == 'PROFESOR':
         return redirect('dashboard_docente')
+    if rol == 'ADMINISTRADOR':
+        return redirect('admin_inicio')
+    if rol == 'DIRECTOR':
+        return redirect('director_inicio')
 
     return render(request, 'gestion_colegio/inicio.html', {
         'usuario': request.user,
@@ -60,6 +77,53 @@ def vista_inicio(request):
         'recientes': [],
         'monthly_income_labels': ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
         'monthly_income_values': [120000, 150000, 90000, 180000, 200000, 130000],
+    })
+
+
+def vista_director_dashboard(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'DIRECTOR':
+        messages.warning(request, 'El tablero ejecutivo es exclusivo para la dirección.')
+        return redirect('panel_inicio')
+
+    total_estudiantes = Estudiante.objects.count()
+    total_recaudado = Pago.objects.aggregate(Sum('monto'))['monto__sum'] or 0
+    total_notas = Nota.objects.count()
+    monthly_labels, monthly_values = _get_monthly_income_data()
+
+    return render(request, 'gestion_colegio/director_dashboard.html', {
+        'usuario': request.user,
+        'user_rol': rol,
+        'total_estudiantes': total_estudiantes,
+        'total_recaudado': total_recaudado,
+        'total_notas': total_notas,
+        'monthly_income_labels': monthly_labels,
+        'monthly_income_values': monthly_values,
+    })
+
+
+def vista_admin_dashboard(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'ADMINISTRADOR':
+        messages.warning(request, 'El panel administrativo es exclusivo para administración.')
+        return redirect('panel_inicio')
+
+    monthly_labels, monthly_values = _get_monthly_income_data()
+
+    return render(request, 'gestion_colegio/admin_dashboard.html', {
+        'usuario': request.user,
+        'user_rol': rol,
+        'total_estudiantes': Estudiante.objects.count(),
+        'total_recaudado': Pago.objects.aggregate(Sum('monto'))['monto__sum'] or 0,
+        'total_notas': Nota.objects.count(),
+        'monthly_income_labels': monthly_labels,
+        'monthly_income_values': monthly_values,
     })
 
 
@@ -225,6 +289,54 @@ def vista_reportes_director(request):
     })
 
 
+def vista_director_ultimos_pagos(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'DIRECTOR':
+        messages.warning(request, 'El módulo de pagos es de lectura exclusiva para la dirección.')
+        return redirect('panel_inicio')
+
+    ultimos_pagos = Pago.objects.all().order_by('-fecha_pago')[:10]
+    return render(request, 'gestion_colegio/director_ultimos_pagos.html', {
+        'ultimos_pagos': ultimos_pagos,
+        'user_rol': rol,
+    })
+
+
+def vista_director_ultimas_notas(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'DIRECTOR':
+        messages.warning(request, 'El historial de calificaciones es de lectura exclusiva para la dirección.')
+        return redirect('panel_inicio')
+
+    ultimas_notas = Nota.objects.all().order_by('-fecha_registro')[:10]
+    return render(request, 'gestion_colegio/director_ultimas_notas.html', {
+        'ultimas_notas': ultimas_notas,
+        'user_rol': rol,
+    })
+
+
+def vista_director_auditoria(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'DIRECTOR':
+        messages.warning(request, 'La auditoría es de lectura exclusiva para la dirección.')
+        return redirect('panel_inicio')
+
+    historial_cambios = HistorialModificacion.objects.all().order_by('-fecha_modificacion')[:10]
+    return render(request, 'gestion_colegio/director_auditoria.html', {
+        'historial_cambios': historial_cambios,
+        'user_rol': rol,
+    })
+
+
 GRADOS_ACADEMICOS = [
     'Transición', '1° Grado', '2° Grado', '3° Grado', '4° Grado', '5° Grado',
     '6° Grado', '7° Grado', '8° Grado', '9° Grado', '10° Grado', '11° Grado'
@@ -344,7 +456,7 @@ def vista_editar_nota(request, nota_id):
     return redirect('registrar_nota')
 
 
-def vista_gestion_estudiantes(request):
+def vista_admin_matricular_estudiante(request):
     if not request.user.is_authenticated:
         return redirect('login')
 
@@ -357,26 +469,123 @@ def vista_gestion_estudiantes(request):
     error = None
 
     if request.method == 'POST':
-        nombre = request.POST.get('nombre')
-        apellido = request.POST.get('apellido')
-        grado = request.POST.get('grado')
+        nombre = (request.POST.get('nombre') or '').strip()
+        apellido = (request.POST.get('apellido') or '').strip()
+        grado = (request.POST.get('grado') or '').strip()
+        documento = (request.POST.get('documento_identidad') or '').strip()
 
-        try:
-            Estudiante.objects.create(
-                nombre=nombre,
-                apellido=apellido,
-                grado=grado
-            )
-            mensaje = f"✅ Estudiante {nombre} {apellido} matriculado exitosamente en el grado {grado}."
-        except Exception as e:
-            error = f"Error al registrar estudiante: {str(e)}"
+        if not nombre or not apellido or not grado:
+            error = 'Debe completar nombre, apellido y grado para matricular el estudiante.'
+        else:
+            if not documento:
+                documento = f"ADM-{nombre[:2].upper()}{apellido[:2].upper()}-{Estudiante.objects.count() + 1:04d}"
 
-    estudiantes = Estudiante.objects.all().order_by('grado', 'apellido')
+            try:
+                Estudiante.objects.create(
+                    nombre=nombre,
+                    apellido=apellido,
+                    documento_identidad=documento,
+                    grado=grado,
+                )
+                mensaje = f"✅ Estudiante {nombre} {apellido} matriculado exitosamente en el grado {grado}."
+            except Exception as e:
+                error = f"Error al registrar estudiante: {str(e)}"
 
-    return render(request, 'gestion_colegio/estudiantes.html', {
-        'estudiantes': estudiantes,
+    return render(request, 'gestion_colegio/admin_matricular_estudiante.html', {
         'mensaje': mensaje,
         'error': error,
+        'user_rol': rol,
+    })
+
+
+def vista_admin_lista_estudiantes(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'ADMINISTRADOR':
+        messages.warning(request, 'El módulo de estudiantes está reservado para administración.')
+        return redirect('panel_inicio')
+
+    estudiantes = Estudiante.objects.all().order_by('grado', 'apellido', 'nombre')
+
+    return render(request, 'gestion_colegio/admin_lista_estudiantes.html', {
+        'estudiantes': estudiantes,
+        'user_rol': rol,
+    })
+
+
+def vista_gestion_estudiantes(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'ADMINISTRADOR':
+        messages.warning(request, 'El módulo de estudiantes está reservado para administración.')
+        return redirect('panel_inicio')
+
+    return redirect('admin_lista_estudiantes')
+
+
+def vista_admin_registrar_pago(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'ADMINISTRADOR':
+        messages.warning(request, 'El módulo de pagos es exclusivo del administrador.')
+        return redirect('panel_inicio')
+
+    return vista_registrar_pago(request)
+
+
+def vista_admin_ultimos_pagos(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'ADMINISTRADOR':
+        messages.warning(request, 'El módulo de pagos es exclusivo del administrador.')
+        return redirect('panel_inicio')
+
+    ultimos_pagos = Pago.objects.all().order_by('-fecha_pago')[:10]
+
+    return render(request, 'gestion_colegio/admin_ultimos_pagos.html', {
+        'ultimos_pagos': ultimos_pagos,
+        'user_rol': rol,
+    })
+
+
+def vista_admin_ultimas_notas(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'ADMINISTRADOR':
+        messages.warning(request, 'El historial de calificaciones es exclusivo del administrador.')
+        return redirect('panel_inicio')
+
+    ultimas_notas = Nota.objects.all().order_by('-fecha_registro')[:10]
+
+    return render(request, 'gestion_colegio/admin_ultimas_notas.html', {
+        'ultimas_notas': ultimas_notas,
+        'user_rol': rol,
+    })
+
+
+def vista_admin_auditoria(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'ADMINISTRADOR':
+        messages.warning(request, 'La auditoría es exclusiva del administrador.')
+        return redirect('panel_inicio')
+
+    historial_cambios = HistorialModificacion.objects.all().order_by('-fecha_modificacion')[:10]
+
+    return render(request, 'gestion_colegio/admin_auditoria.html', {
+        'historial_cambios': historial_cambios,
         'user_rol': rol,
     })
 

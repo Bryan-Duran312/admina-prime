@@ -1,0 +1,128 @@
+{% extends 'gestion_colegio/base.html' %}
+
+{% block title %}SGAF - Dashboard Director{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Dashboard Ejecutivo</h2>
+            <p class="mb-0 text-muted">Resumen general del colegio y su operación financiera.</p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="kpi-card">
+                <h6>Total Recaudado</h6>
+                <div class="display-6 fw-bold">$ {{ total_recaudado|default:"0" }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="kpi-card">
+                <h6>Estudiantes</h6>
+                <div class="display-6 fw-bold">{{ total_estudiantes|default:"0" }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="kpi-card">
+                <h6>Calificaciones Registradas</h6>
+                <div class="display-6 fw-bold">{{ total_notas|default:"0" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="kpi-card mb-3" style="min-height: 360px;">
+                <h5>Ingresos Mensuales</h5>
+                <canvas id="incomeChart" height="140"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="kpi-card h-100">
+                <h5>Resumen Ejecutivo</h5>
+                <ul class="list-unstyled mt-3 mb-0">
+                    <li class="mb-2"><strong>Estado:</strong> Operación estable</li>
+                    <li class="mb-2"><strong>Gestión:</strong> Supervisión académica y financiera</li>
+                    <li class="mb-2"><strong>Alerta:</strong> Sin incidencias críticas</li>
+                    <li><strong>Indicador:</strong> Cobranza y rendimiento en nivel esperado</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    (function () {
+        const ctx = document.getElementById('incomeChart');
+        if (!ctx) return;
+
+        const labels = {{ monthly_income_labels|default:"['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']"|safe }};
+        const values = {{ monthly_income_values|default:"[0,0,0,0,0,0,0,0,0,0,0,0]"|safe }};
+
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const axisColor = isDark ? 'rgba(226, 232, 240, 0.9)' : 'rgba(15, 23, 42, 0.9)';
+        const gridColor = isDark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(15, 23, 42, 0.08)';
+        const barColor = isDark ? '#60a5fa' : '#2563eb';
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Ingresos',
+                    data: values,
+                    backgroundColor: barColor,
+                    borderColor: barColor,
+                    borderRadius: 8,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const value = Number(context.parsed.y || 0);
+                                return '$ ' + value.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: axisColor,
+                            font: { weight: 600 }
+                        },
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        border: { display: false }
+                    },
+                    y: {
+                        ticks: {
+                            color: axisColor,
+                            callback: function (value) {
+                                return '$ ' + Number(value).toLocaleString('es-CO', { maximumFractionDigits: 0 });
+                            }
+                        },
+                        grid: {
+                            color: gridColor,
+                            drawBorder: false
+                        },
+                        border: { display: false }
+                    }
+                }
+            }
+        });
+    })();
+</script>
+{% endblock %}

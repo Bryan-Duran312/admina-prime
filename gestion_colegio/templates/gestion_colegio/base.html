@@ -223,14 +223,18 @@
             box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.18);
         }
 
-        .teacher-accordion-item {
+        .teacher-accordion-item,
+        .admin-accordion-item,
+        .director-accordion-item {
             border: 1px solid var(--sgaf-border);
             border-radius: 14px;
             background: rgba(148, 163, 184, 0.04);
             overflow: hidden;
         }
 
-        .teacher-accordion-toggle {
+        .teacher-accordion-toggle,
+        .admin-accordion-toggle,
+        .director-accordion-toggle {
             width: 100%;
             display: flex;
             align-items: center;
@@ -243,25 +247,33 @@
             text-align: left;
         }
 
-        .teacher-submenu {
+        .teacher-submenu,
+        .admin-submenu,
+        .director-submenu {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.25s ease;
             background: rgba(15, 23, 42, 0.02);
         }
 
-        .teacher-submenu.active {
+        .teacher-submenu.active,
+        .admin-submenu.active,
+        .director-submenu.active {
             max-height: 520px;
         }
 
-        .teacher-submenu a {
+        .teacher-submenu a,
+        .admin-submenu a,
+        .director-submenu a {
             padding: 0.7rem 1rem 0.7rem 2.05rem;
             color: var(--sgaf-text);
             opacity: 0.9;
             font-size: 0.92rem;
         }
 
-        .teacher-submenu .sub-icon {
+        .teacher-submenu .sub-icon,
+        .admin-submenu .sub-icon,
+        .director-submenu .sub-icon {
             opacity: 0.7;
         }
 
@@ -530,8 +542,20 @@
                             <div class="nav-title">Navegación</div>
                             <ul class="nav-menu">
                                 {% if user_rol == 'DIRECTOR' %}
-                                    <li><a href="{% url 'panel_inicio' %}" class="{% if request.path == '/inicio/' %}active{% endif %}"><span class="icon">🏠</span>Inicio</a></li>
-                                    <li><a href="{% url 'reportes_director' %}" class="{% if 'reportes' in request.path %}active{% endif %}"><span class="icon">📊</span>Reportes Financieros y Académicos</a></li>
+                                    <li><a href="{% url 'director_inicio' %}" class="{% if request.path == '/director/' %}active{% endif %}"><span class="icon">🏠</span>Inicio</a></li>
+                                    <li>
+                                        <div class="director-accordion-item">
+                                            <button type="button" class="director-accordion-toggle" data-target="director-reportes-menu" aria-expanded="false">
+                                                <span class="icon">📊</span>
+                                                <span>Reportes Financieros y Académicos</span>
+                                            </button>
+                                            <div id="director-reportes-menu" class="director-submenu">
+                                                <a href="{% url 'director_ultimos_pagos' %}" class="{% if request.path == '/director/reportes/pagos/' %}active{% endif %}"><span class="sub-icon">•</span>Últimos Pagos Registrados</a>
+                                                <a href="{% url 'director_ultimas_notas' %}" class="{% if request.path == '/director/reportes/calificaciones/' %}active{% endif %}"><span class="sub-icon">•</span>Últimas Calificaciones Subidas</a>
+                                                <a href="{% url 'director_auditoria' %}" class="{% if request.path == '/director/reportes/auditoria/' %}active{% endif %}"><span class="sub-icon">•</span>Auditoría de Modificaciones</a>
+                                            </div>
+                                        </div>
+                                    </li>
                                 {% elif user_rol == 'PROFESOR' %}
                                     <li><a href="{% url 'dashboard_docente' %}" class="{% if request.path == '/docente/' %}active{% endif %}"><span class="icon">🏠</span>Inicio</a></li>
                                     <li>
@@ -568,11 +592,36 @@
                                             </div>
                                         </div>
                                     </li>
+                                {% elif user_rol == 'ADMINISTRADOR' %}
+                                    <li><a href="{% url 'admin_inicio' %}" class="{% if request.path == '/admin-panel/' %}active{% endif %}"><span class="icon">🏠</span>Inicio</a></li>
+                                    <li>
+                                        <div class="admin-accordion-item">
+                                            <button type="button" class="admin-accordion-toggle" data-target="admin-estudiantes-menu" aria-expanded="false">
+                                                <span class="icon">🎓</span>
+                                                <span>Gestión de Estudiantes</span>
+                                            </button>
+                                            <div id="admin-estudiantes-menu" class="admin-submenu">
+                                                <a href="{% url 'admin_matricular_estudiante' %}" class="{% if request.path == '/admin-panel/matricular-estudiante/' %}active{% endif %}"><span class="sub-icon">•</span>Matricular Nuevo Estudiante</a>
+                                                <a href="{% url 'admin_lista_estudiantes' %}" class="{% if request.path == '/admin-panel/estudiantes/' %}active{% endif %}"><span class="sub-icon">•</span>Lista de Estudiantes Matriculados</a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="admin-accordion-item">
+                                            <button type="button" class="admin-accordion-toggle" data-target="admin-pagos-menu" aria-expanded="false">
+                                                <span class="icon">💰</span>
+                                                <span>Pagos</span>
+                                            </button>
+                                            <div id="admin-pagos-menu" class="admin-submenu">
+                                                <a href="{% url 'admin_registrar_pago' %}" class="{% if request.path == '/admin-panel/pagos/registro/' %}active{% endif %}"><span class="sub-icon">•</span>Registro de Pagos</a>
+                                                <a href="{% url 'admin_ultimos_pagos' %}" class="{% if request.path == '/admin-panel/pagos/' %}active{% endif %}"><span class="sub-icon">•</span>Últimos Pagos Registrados</a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li><a href="{% url 'admin_ultimas_notas' %}" class="{% if request.path == '/admin-panel/calificaciones/' %}active{% endif %}"><span class="icon">📝</span>Últimas Calificaciones Subidas</a></li>
+                                    <li><a href="{% url 'admin_auditoria' %}" class="{% if request.path == '/admin-panel/auditoria/' %}active{% endif %}"><span class="icon">🛡️</span>Bitácora de Modificaciones (Auditoría)</a></li>
                                 {% else %}
                                     <li><a href="{% url 'panel_inicio' %}" class="{% if request.path == '/inicio/' %}active{% endif %}"><span class="icon">🏠</span>Inicio</a></li>
-                                    <li><a href="{% url 'gestion_estudiantes' %}" class="{% if 'estudiantes' in request.path %}active{% endif %}"><span class="icon">🎓</span>Gestión de Estudiantes</a></li>
-                                    <li><a href="{% url 'registrar_pago' %}" class="{% if 'registrar-pago' in request.path %}active{% endif %}"><span class="icon">💰</span>Registro de Pagos</a></li>
-                                    <li><a href="{% url 'reportes_director' %}" class="{% if 'reportes' in request.path %}active{% endif %}"><span class="icon">📊</span>Reportes Financieros y Académicos</a></li>
                                 {% endif %}
                             </ul>
                         </div>
@@ -613,10 +662,16 @@
                     });
                 }
 
-                document.querySelectorAll('.teacher-accordion-toggle').forEach(function (toggle) {
+                document.querySelectorAll('.teacher-accordion-toggle, .admin-accordion-toggle, .director-accordion-toggle').forEach(function (toggle) {
+                    const targetId = toggle.dataset.target;
+                    const target = document.getElementById(targetId);
+                    if (target) {
+                        target.classList.remove('active');
+                        toggle.setAttribute('aria-expanded', 'false');
+                    }
+
                     toggle.addEventListener('click', function () {
-                        const targetId = this.dataset.target;
-                        const target = document.getElementById(targetId);
+                        const target = document.getElementById(this.dataset.target);
                         if (!target) return;
 
                         const isOpen = target.classList.contains('active');
@@ -625,21 +680,21 @@
                     });
                 });
 
-                document.querySelectorAll('.teacher-submenu a').forEach(function (link) {
+                document.querySelectorAll('.teacher-submenu a, .admin-submenu a, .director-submenu a').forEach(function (link) {
                     link.addEventListener('click', function () {
-                        const submenu = this.closest('.teacher-submenu');
+                        const submenu = this.closest('.teacher-submenu') || this.closest('.admin-submenu') || this.closest('.director-submenu');
                         if (!submenu) return;
 
-                        const accordionItem = submenu.closest('.teacher-accordion-item');
+                        const accordionItem = submenu.closest('.teacher-accordion-item') || submenu.closest('.admin-accordion-item') || submenu.closest('.director-accordion-item');
                         if (!accordionItem) return;
 
-                        const toggle = accordionItem.querySelector('.teacher-accordion-toggle');
+                        const toggle = accordionItem.querySelector('.teacher-accordion-toggle, .admin-accordion-toggle, .director-accordion-toggle');
                         if (!toggle) return;
 
                         setTimeout(function () {
                             submenu.classList.remove('active');
                             toggle.setAttribute('aria-expanded', 'false');
-                        }, 1200 + Math.floor(Math.random() * 300));
+                        }, 1500);
                     });
                 });
 

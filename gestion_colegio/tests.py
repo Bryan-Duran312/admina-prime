@@ -24,6 +24,27 @@ class NotaCorrectionAjaxTests(TestCase):
             profesor_que_registro=self.user,
         )
 
+    def test_admin_views_are_available_and_hide_correction_actions(self):
+        admin_user = User.objects.create_user(username='admin', password='secure123')
+        PerfilUsuario.objects.create(user=admin_user, rol='ADMINISTRADOR')
+        self.client.login(username='admin', password='secure123')
+
+        for view_name in [
+            'admin_inicio',
+            'admin_matricular_estudiante',
+            'admin_lista_estudiantes',
+            'admin_registrar_pago',
+            'admin_ultimos_pagos',
+            'admin_ultimas_notas',
+            'admin_auditoria',
+        ]:
+            response = self.client.get(reverse(view_name))
+            self.assertEqual(response.status_code, 200, f'{view_name} should be reachable for admin users.')
+
+        notes_page = self.client.get(reverse('admin_ultimas_notas'))
+        self.assertContains(notes_page, 'Últimas Calificaciones Subidas')
+        self.assertNotContains(notes_page, 'Corregir')
+
     def test_ajax_correction_returns_success_json(self):
         self.client.login(username='profesor', password='secure123')
 
