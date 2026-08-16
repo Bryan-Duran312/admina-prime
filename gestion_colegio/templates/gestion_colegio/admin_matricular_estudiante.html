@@ -28,7 +28,12 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Grado / Cursado:</label>
-                    <input type="text" name="grado" class="form-control" placeholder="Ej: 10°A" required>
+                    <select name="grado" class="form-select" required>
+                        <option value="">Seleccione un grado</option>
+                        {% for grado in grados %}
+                            <option value="{{ grado.id }}">{{ grado.nombre }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div class="col-12">
                     <button type="submit" class="btn btn-primary">Matricular Estudiante</button>

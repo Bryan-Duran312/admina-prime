@@ -40,7 +40,7 @@
                     <select name="estudiante" class="form-select" required>
                         <option value="" disabled selected>-- Seleccione un Estudiante --</option>
                         {% for est in estudiantes %}
-                            <option value="{{ est.id }}">{{ est.nombre }} {{ est.apellido }} (Grado: {{ est.grado }})</option>
+                            <option value="{{ est.id }}">{{ est.nombre }} {{ est.apellido }} (Grado: {{ est.grado.nombre }})</option>
                         {% endfor %}
                     </select>
                 </div>

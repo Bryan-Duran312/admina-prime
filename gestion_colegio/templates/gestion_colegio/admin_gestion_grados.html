@@ -1,0 +1,96 @@
+{% extends 'gestion_colegio/base.html' %}
+
+{% block title %}SGAF - Crear / Gestionar Grados{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h2 class="mb-1">Crear / Gestionar Grados</h2>
+            <p class="mb-0 text-muted">Administra los grados académicos que están disponibles para matricular y para asistencia docente.</p>
+        </div>
+    </div>
+
+    {% if mensaje %}<div class="alert alert-success">{{ mensaje }}</div>{% endif %}
+    {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card p-3 shadow-sm h-100">
+                <h5 class="mb-3">Registrar nuevo grado</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre del grado</label>
+                        <input type="text" name="nombre" class="form-control" placeholder="Ej: 101, 102, Transición, 6°A" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Guardar grado</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card p-3 shadow-sm">
+                <h5 class="mb-3">Grados existentes</h5>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Grado</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for grado in grados %}
+                            <tr>
+                                <td><span class="badge bg-primary-subtle text-primary">{{ grado.nombre }}</span></td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#edit-grado-{{ grado.id }}">Editar</button>
+                                        <form method="post" onsubmit="return confirm('¿Seguro que deseas eliminar este grado?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="grado_id" value="{{ grado.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <div class="modal fade" id="edit-grado-{{ grado.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="update">
+                                            <input type="hidden" name="grado_id" value="{{ grado.id }}">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Editar grado</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <label class="form-label">Nombre del grado</label>
+                                                <input type="text" name="nombre" class="form-control" value="{{ grado.nombre }}" required>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2" class="text-center text-muted py-4">Aún no hay grados creados.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

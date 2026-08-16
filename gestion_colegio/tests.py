@@ -4,18 +4,19 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Estudiante, Nota, PerfilUsuario
+from .models import Estudiante, Nota, PerfilUsuario, Grado
 
 
 class NotaCorrectionAjaxTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='profesor', password='secure123')
         PerfilUsuario.objects.create(user=self.user, rol='PROFESOR')
+        self.grado = Grado.objects.create(nombre='Grado 5')
         self.estudiante = Estudiante.objects.create(
             nombre='Ana',
             apellido='García',
             documento_identidad='123456789',
-            grado='Grado 5',
+            grado=self.grado,
         )
         self.nota = Nota.objects.create(
             estudiante=self.estudiante,
@@ -79,3 +80,22 @@ class NotaCorrectionAjaxTests(TestCase):
         history = self.client.get(reverse('docente_historial_notas'))
         self.assertEqual(history.status_code, 200)
         self.assertContains(history, 'Historial de Calificaciones')
+
+    def test_admin_grade_management_and_teacher_view_are_dynamic(self):
+        admin_user = User.objects.create_user(username='admin_grade', password='secure123')
+        PerfilUsuario.objects.create(user=admin_user, rol='ADMINISTRADOR')
+        grado_db = Grado.objects.create(nombre='6°A')
+        Grado.objects.create(nombre='Transición')
+
+        self.client.login(username='admin_grade', password='secure123')
+        admin_response = self.client.get(reverse('admin_gestion_grados'))
+        self.assertEqual(admin_response.status_code, 200)
+        self.assertContains(admin_response, 'Crear / Gestionar Grados')
+        self.assertContains(admin_response, grado_db.nombre)
+
+        self.client.logout()
+        self.client.login(username='profesor', password='secure123')
+        response = self.client.get(reverse('asistencia_grado'), {'grado': grado_db.nombre})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, grado_db.nombre)
+        self.assertNotContains(response, '1° Grado')

@@ -11,6 +11,7 @@ urlpatterns = [
     path('director/reportes/auditoria/', views.vista_director_auditoria, name='director_auditoria'),
     path('admin-panel/', views.vista_admin_dashboard, name='admin_inicio'),
     path('admin-panel/matricular-estudiante/', views.vista_admin_matricular_estudiante, name='admin_matricular_estudiante'),
+    path('admin-panel/gestion-grados/', views.vista_admin_gestion_grados, name='admin_gestion_grados'),
     path('admin-panel/estudiantes/', views.vista_admin_lista_estudiantes, name='admin_lista_estudiantes'),
     path('admin-panel/pagos/registro/', views.vista_admin_registrar_pago, name='admin_registrar_pago'),
     path('admin-panel/pagos/', views.vista_admin_ultimos_pagos, name='admin_ultimos_pagos'),

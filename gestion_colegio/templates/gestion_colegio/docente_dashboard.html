@@ -156,12 +156,19 @@
                             </a>
                         </div>
                         <div class="col-md-4">
-                            <a href="{% url 'asistencia_grado' %}?grado=5°%20Grado" class="text-decoration-none text-reset">
+                            {% if grado_seleccionado %}
+                            <a href="{% url 'asistencia_grado' %}?grado={{ grado_seleccionado|urlencode }}" class="text-decoration-none text-reset">
                                 <div class="quick-access-card p-3 h-100">
                                     <div class="quick-access-title">Tomar Asistencia</div>
                                     <small class="quick-access-text">Registra la asistencia por grado del día.</small>
                                 </div>
                             </a>
+                            {% else %}
+                            <div class="quick-access-card p-3 h-100">
+                                <div class="quick-access-title">Tomar Asistencia</div>
+                                <small class="quick-access-text">Crea un grado desde el panel administrativo.</small>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

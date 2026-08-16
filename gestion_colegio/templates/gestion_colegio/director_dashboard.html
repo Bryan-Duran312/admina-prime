@@ -3,8 +3,8 @@
 {% block title %}SGAF - Dashboard Director{% endblock %}
 
 {% block content %}
-<div class="container-fluid p-0">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid p-0 pt-20">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
         <div>
             <h2 class="mb-1">Dashboard Ejecutivo</h2>
             <p class="mb-0 text-muted">Resumen general del colegio y su operación financiera.</p>
@@ -34,9 +34,11 @@
 
     <div class="row g-3">
         <div class="col-lg-8">
-            <div class="kpi-card mb-3" style="min-height: 360px;">
+            <div class="kpi-card mb-3" style="min-height: 360px; max-height: 360px; overflow: hidden; padding-bottom: 12px;">
                 <h5>Ingresos Mensuales</h5>
-                <canvas id="incomeChart" height="140"></canvas>
+                <div class="relative w-full h-64 md:h-72" style="padding-bottom: 8px;">
+                    <canvas id="incomeChart" class="w-100 h-100"></canvas>
+                </div>
             </div>
         </div>
         <div class="col-lg-4">
@@ -64,8 +66,9 @@
         const values = {{ monthly_income_values|default:"[0,0,0,0,0,0,0,0,0,0,0,0]"|safe }};
 
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        const axisColor = isDark ? 'rgba(226, 232, 240, 0.9)' : 'rgba(15, 23, 42, 0.9)';
-        const gridColor = isDark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(15, 23, 42, 0.08)';
+        const axisColor = isDark ? '#f8fafc' : '#1e293b';
+        const gridColor = isDark ? '#334155' : '#e2e8f0';
+        const tickLabelColor = isDark ? '#cbd5e1' : '#475569';
         const barColor = isDark ? '#60a5fa' : '#2563eb';
 
         new Chart(ctx, {
@@ -98,18 +101,21 @@
                 scales: {
                     x: {
                         ticks: {
-                            color: axisColor,
-                            font: { weight: 600 }
+                            color: tickLabelColor,
+                            maxRotation: 0,
+                            minRotation: 0,
+                            autoSkip: true,
+                            font: { weight: 600, size: 11 }
                         },
                         grid: {
-                            display: false,
+                            color: 'transparent',
                             drawBorder: false
                         },
                         border: { display: false }
                     },
                     y: {
                         ticks: {
-                            color: axisColor,
+                            color: tickLabelColor,
                             callback: function (value) {
                                 return '$ ' + Number(value).toLocaleString('es-CO', { maximumFractionDigits: 0 });
                             }

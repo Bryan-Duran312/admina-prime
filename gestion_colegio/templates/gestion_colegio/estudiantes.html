@@ -51,7 +51,7 @@
                     <tr>
                         <td>#{{ est.id }}</td>
                         <td><strong>{{ est.nombre }} {{ est.apellido }}</strong></td>
-                        <td><span class="badge bg-primary-subtle text-primary">{{ est.grado }}</span></td>
+                        <td><span class="badge bg-primary-subtle text-primary">{{ est.grado.nombre }}</span></td>
                     </tr>
                     {% empty %}
                     <tr><td colspan="3" class="text-center">No hay estudiantes matriculados.</td></tr>

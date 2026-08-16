@@ -1,6 +1,18 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
+class Grado(models.Model):
+    nombre = models.CharField(max_length=60, unique=True)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['nombre']
+
+    def __str__(self):
+        return self.nombre
+
+
 # 1. PERFILES DE USUARIO (Para manejar los Roles)
 class PerfilUsuario(models.Model):
     ROLES = (
@@ -20,10 +32,14 @@ class Estudiante(models.Model):
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
     documento_identidad = models.CharField(max_length=20, unique=True)
-    grado = models.CharField(max_length=20) # Ej: "Grado 6A", "Grado 11"
+    grado = models.ForeignKey(Grado, on_delete=models.SET_NULL, null=True, blank=True, related_name='estudiantes')
 
     def __str__(self):
-        return f"{self.nombre} {self.apellido} - {self.grado}"
+        return f"{self.nombre} {self.apellido} - {self.grado.nombre if self.grado else 'Sin grado'}"
+
+    @property
+    def grado_nombre(self):
+        return self.grado.nombre if self.grado else ''
 
 
 # 3. TABLA DE CALIFICACIONES (GESTIÓN DE NOTAS AVANZADA)

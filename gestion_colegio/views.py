@@ -7,7 +7,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Sum
 from django.http import JsonResponse
 from datetime import date, datetime
-from .models import Estudiante, Pago, Nota, HistorialModificacion, Asistencia
+from .models import Estudiante, Pago, Nota, HistorialModificacion, Asistencia, Grado
 
 
 def get_user_rol(user):
@@ -142,13 +142,16 @@ def vista_dashboard_docente(request):
         messages.warning(request, 'La vista docente es exclusiva para el personal docente.')
         return redirect('panel_inicio')
 
+    grados_academicos = Grado.objects.filter(activo=True).order_by('nombre')
     total_estudiantes = Estudiante.objects.count()
-    grados_asignados = Estudiante.objects.values_list('grado', flat=True).distinct().count()
+    grados_asignados = Estudiante.objects.exclude(grado__isnull=True).values_list('grado_id', flat=True).distinct().count()
     notas_registradas = _get_queryset_notas_docente(request.user).count()
     asistencias_hoy = Asistencia.objects.filter(fecha=date.today(), registrado_por=request.user).count()
 
     return render(request, 'gestion_colegio/docente_dashboard.html', {
         'user_rol': rol,
+        'grados_academicos': grados_academicos,
+        'grado_seleccionado': grados_academicos.first().nombre if grados_academicos.exists() else '',
         'total_estudiantes': total_estudiantes,
         'grados_asignados': grados_asignados,
         'notas_registradas': notas_registradas,
@@ -221,6 +224,7 @@ def vista_docente_registrar_nota(request):
 
     mensaje = None
     error = None
+    grados_academicos = Grado.objects.filter(activo=True).order_by('nombre')
 
     if request.method == 'POST':
         estudiante_id = request.POST.get('estudiante')
@@ -239,13 +243,15 @@ def vista_docente_registrar_nota(request):
         except Exception as e:
             error = f"Error al registrar la nota: {str(e)}"
 
-    estudiantes = Estudiante.objects.all()
+    estudiantes = Estudiante.objects.all().order_by('apellido', 'nombre')
 
     return render(request, 'gestion_colegio/docente_registrar_nota.html', {
         'estudiantes': estudiantes,
         'mensaje': mensaje,
         'error': error,
         'user_rol': rol,
+        'grados_academicos': grados_academicos,
+        'grado_seleccionado': grados_academicos.first().nombre if grados_academicos.exists() else '',
     })
 
 
@@ -259,10 +265,13 @@ def vista_docente_historial_notas(request):
         return redirect('panel_inicio')
 
     mis_notas = _get_queryset_notas_docente(request.user)
+    grados_academicos = Grado.objects.filter(activo=True).order_by('nombre')
 
     return render(request, 'gestion_colegio/docente_historial_notas.html', {
         'mis_notas': mis_notas,
         'user_rol': rol,
+        'grados_academicos': grados_academicos,
+        'grado_seleccionado': grados_academicos.first().nombre if grados_academicos.exists() else '',
     })
 
 
@@ -337,12 +346,6 @@ def vista_director_auditoria(request):
     })
 
 
-GRADOS_ACADEMICOS = [
-    'Transición', '1° Grado', '2° Grado', '3° Grado', '4° Grado', '5° Grado',
-    '6° Grado', '7° Grado', '8° Grado', '9° Grado', '10° Grado', '11° Grado'
-]
-
-
 def vista_asistencia_por_grado(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -351,11 +354,14 @@ def vista_asistencia_por_grado(request):
     if rol != 'PROFESOR':
         raise PermissionDenied('La asistencia por grado es exclusiva del personal docente.')
 
-    grado_seleccionado = request.GET.get('grado') or '5° Grado'
-    if grado_seleccionado not in GRADOS_ACADEMICOS:
-        grado_seleccionado = '5° Grado'
+    grados_academicos = Grado.objects.filter(activo=True).order_by('nombre')
+    grado_nombre = request.GET.get('grado') or (grados_academicos.first().nombre if grados_academicos.exists() else '')
+    grado_obj = grados_academicos.filter(nombre=grado_nombre).first() if grado_nombre else None
+    if grado_obj is None and grados_academicos.exists():
+        grado_obj = grados_academicos.first()
 
-    estudiantes = Estudiante.objects.filter(grado=grado_seleccionado).order_by('apellido', 'nombre')
+    grado_seleccionado = grado_obj.nombre if grado_obj else ''
+    estudiantes = Estudiante.objects.filter(grado=grado_obj).order_by('apellido', 'nombre') if grado_obj else Estudiante.objects.none()
     fecha_hoy = date.today().strftime('%d/%m/%Y')
     mensaje = None
     error = None
@@ -379,7 +385,7 @@ def vista_asistencia_por_grado(request):
 
     return render(request, 'gestion_colegio/asistencia_grado.html', {
         'user_rol': rol,
-        'grados_academicos': GRADOS_ACADEMICOS,
+        'grados_academicos': grados_academicos,
         'grado_seleccionado': grado_seleccionado,
         'estudiantes': estudiantes,
         'fecha_hoy': fecha_hoy,
@@ -465,18 +471,20 @@ def vista_admin_matricular_estudiante(request):
         messages.warning(request, 'El módulo de estudiantes está reservado para administración.')
         return redirect('panel_inicio')
 
+    grados = Grado.objects.filter(activo=True).order_by('nombre')
     mensaje = None
     error = None
 
     if request.method == 'POST':
         nombre = (request.POST.get('nombre') or '').strip()
         apellido = (request.POST.get('apellido') or '').strip()
-        grado = (request.POST.get('grado') or '').strip()
+        grado_id = request.POST.get('grado')
         documento = (request.POST.get('documento_identidad') or '').strip()
 
-        if not nombre or not apellido or not grado:
+        if not nombre or not apellido or not grado_id:
             error = 'Debe completar nombre, apellido y grado para matricular el estudiante.'
         else:
+            grado_obj = get_object_or_404(Grado, id=grado_id, activo=True)
             if not documento:
                 documento = f"ADM-{nombre[:2].upper()}{apellido[:2].upper()}-{Estudiante.objects.count() + 1:04d}"
 
@@ -485,9 +493,9 @@ def vista_admin_matricular_estudiante(request):
                     nombre=nombre,
                     apellido=apellido,
                     documento_identidad=documento,
-                    grado=grado,
+                    grado=grado_obj,
                 )
-                mensaje = f"✅ Estudiante {nombre} {apellido} matriculado exitosamente en el grado {grado}."
+                mensaje = f"✅ Estudiante {nombre} {apellido} matriculado exitosamente en el grado {grado_obj.nombre}."
             except Exception as e:
                 error = f"Error al registrar estudiante: {str(e)}"
 
@@ -495,6 +503,7 @@ def vista_admin_matricular_estudiante(request):
         'mensaje': mensaje,
         'error': error,
         'user_rol': rol,
+        'grados': grados,
     })
 
 
@@ -507,10 +516,61 @@ def vista_admin_lista_estudiantes(request):
         messages.warning(request, 'El módulo de estudiantes está reservado para administración.')
         return redirect('panel_inicio')
 
-    estudiantes = Estudiante.objects.all().order_by('grado', 'apellido', 'nombre')
+    estudiantes = Estudiante.objects.select_related('grado').all().order_by('grado__nombre', 'apellido', 'nombre')
 
     return render(request, 'gestion_colegio/admin_lista_estudiantes.html', {
         'estudiantes': estudiantes,
+        'user_rol': rol,
+    })
+
+
+def vista_admin_gestion_grados(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'ADMINISTRADOR':
+        messages.warning(request, 'La gestión de grados es exclusiva del administrador.')
+        return redirect('panel_inicio')
+
+    error = None
+    mensaje = None
+    grados = Grado.objects.filter(activo=True).order_by('nombre')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        nombre = (request.POST.get('nombre') or '').strip()
+        grado_id = request.POST.get('grado_id')
+
+        if action == 'delete':
+            grado = get_object_or_404(Grado, id=grado_id)
+            if Estudiante.objects.filter(grado=grado).exists():
+                error = 'No se puede eliminar este grado porque ya tiene estudiantes matriculados.'
+            else:
+                grado.delete()
+                mensaje = '✅ Grado eliminado correctamente.'
+        else:
+            if not nombre:
+                error = 'Debe ingresar un nombre de grado válido.'
+            elif action == 'update' and grado_id:
+                grado = get_object_or_404(Grado, id=grado_id)
+                if Grado.objects.filter(nombre__iexact=nombre).exclude(id=grado.id).exists():
+                    error = 'Ya existe un grado con ese nombre.'
+                else:
+                    grado.nombre = nombre
+                    grado.save(update_fields=['nombre'])
+                    mensaje = f"✅ Grado actualizado a {nombre}."
+            else:
+                if Grado.objects.filter(nombre__iexact=nombre).exists():
+                    error = 'Ya existe un grado con ese nombre.'
+                else:
+                    Grado.objects.create(nombre=nombre)
+                    mensaje = f"✅ El grado {nombre} fue creado correctamente."
+
+    return render(request, 'gestion_colegio/admin_gestion_grados.html', {
+        'grados': grados,
+        'mensaje': mensaje,
+        'error': error,
         'user_rol': rol,
     })
 

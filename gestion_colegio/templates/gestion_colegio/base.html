@@ -577,18 +577,11 @@
                                                 <span>Grados Académicos</span>
                                             </button>
                                             <div id="docente-grados-menu" class="teacher-submenu">
-                                                <a href="{% url 'asistencia_grado' %}?grado=Transición" class="{% if 'grado=Transición' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>Transición</a>
-                                                <a href="{% url 'asistencia_grado' %}?grado=1°%20Grado" class="{% if 'grado=1%C2%B0%20Grado' in request.get_full_path or 'grado=1°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>1° Grado</a>
-                                                <a href="{% url 'asistencia_grado' %}?grado=2°%20Grado" class="{% if 'grado=2%C2%B0%20Grado' in request.get_full_path or 'grado=2°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>2° Grado</a>
-                                                <a href="{% url 'asistencia_grado' %}?grado=3°%20Grado" class="{% if 'grado=3%C2%B0%20Grado' in request.get_full_path or 'grado=3°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>3° Grado</a>
-                                                <a href="{% url 'asistencia_grado' %}?grado=4°%20Grado" class="{% if 'grado=4%C2%B0%20Grado' in request.get_full_path or 'grado=4°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>4° Grado</a>
-                                                <a href="{% url 'asistencia_grado' %}?grado=5°%20Grado" class="{% if 'grado=5%C2%B0%20Grado' in request.get_full_path or 'grado=5°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>5° Grado</a>
-                                                <a href="{% url 'asistencia_grado' %}?grado=6°%20Grado" class="{% if 'grado=6%C2%B0%20Grado' in request.get_full_path or 'grado=6°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>6° Grado</a>
-                                                <a href="{% url 'asistencia_grado' %}?grado=7°%20Grado" class="{% if 'grado=7%C2%B0%20Grado' in request.get_full_path or 'grado=7°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>7° Grado</a>
-                                                <a href="{% url 'asistencia_grado' %}?grado=8°%20Grado" class="{% if 'grado=8%C2%B0%20Grado' in request.get_full_path or 'grado=8°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>8° Grado</a>
-                                                <a href="{% url 'asistencia_grado' %}?grado=9°%20Grado" class="{% if 'grado=9%C2%B0%20Grado' in request.get_full_path or 'grado=9°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>9° Grado</a>
-                                                <a href="{% url 'asistencia_grado' %}?grado=10°%20Grado" class="{% if 'grado=10%C2%B0%20Grado' in request.get_full_path or 'grado=10°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>10° Grado</a>
-                                                <a href="{% url 'asistencia_grado' %}?grado=11°%20Grado" class="{% if 'grado=11%C2%B0%20Grado' in request.get_full_path or 'grado=11°%20Grado' in request.get_full_path %}active{% endif %}"><span class="sub-icon">•</span>11° Grado</a>
+                                                {% for grado in grados_academicos %}
+                                                    <a href="{% url 'asistencia_grado' %}?grado={{ grado.nombre|urlencode }}" class="{% if grado.nombre == grado_seleccionado %}active{% endif %}"><span class="sub-icon">•</span>{{ grado.nombre }}</a>
+                                                {% empty %}
+                                                    <a href="#" class="disabled"><span class="sub-icon">•</span>Sin grados creados</a>
+                                                {% endfor %}
                                             </div>
                                         </div>
                                     </li>
@@ -602,6 +595,7 @@
                                             </button>
                                             <div id="admin-estudiantes-menu" class="admin-submenu">
                                                 <a href="{% url 'admin_matricular_estudiante' %}" class="{% if request.path == '/admin-panel/matricular-estudiante/' %}active{% endif %}"><span class="sub-icon">•</span>Matricular Nuevo Estudiante</a>
+                                                <a href="{% url 'admin_gestion_grados' %}" class="{% if request.path == '/admin-panel/gestion-grados/' %}active{% endif %}"><span class="sub-icon">•</span>Crear / Gestionar Grados</a>
                                                 <a href="{% url 'admin_lista_estudiantes' %}" class="{% if request.path == '/admin-panel/estudiantes/' %}active{% endif %}"><span class="sub-icon">•</span>Lista de Estudiantes Matriculados</a>
                                             </div>
                                         </div>
@@ -636,7 +630,9 @@
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.12.4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js"></script>
     <script>

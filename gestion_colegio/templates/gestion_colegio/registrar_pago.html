@@ -21,7 +21,7 @@
                         <select name="estudiante" id="estudiante" class="form-select" required>
                             <option value="" disabled selected>-- Seleccione un Estudiante --</option>
                             {% for est in estudiantes %}
-                                <option value="{{ est.id }}">{{ est.nombre }} {{ est.apellido }} - {{ est.grado }}</option>
+                                <option value="{{ est.id }}">{{ est.nombre }} {{ est.apellido }} - {{ est.grado.nombre }}</option>
                             {% empty %}
                                 <option value="" disabled>No hay estudiantes registrados. Agrega uno en /admin</option>
                             {% endfor %}
