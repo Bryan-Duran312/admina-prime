@@ -431,10 +431,28 @@
             transition: all 0.3s ease;
         }
 
+        .form-control::placeholder,
+        .form-select::placeholder,
+        textarea::placeholder {
+            color: #64748b !important;
+            opacity: 1;
+        }
+
         .form-control:focus,
         .form-select:focus {
             border-color: rgba(56, 189, 248, 0.5);
             box-shadow: 0 0 0 0.2rem rgba(56, 189, 248, 0.12);
+        }
+
+        .form-select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23334155' d='M4.427 6.427a.75.75 0 0 1 1.06 0L8 9.14l2.513-2.713a.75.75 0 1 1 1.06 1.06L8.53 10.7a.75.75 0 0 1-1.06 0L4.427 7.487a.75.75 0 0 1 0-1.06Z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1rem;
+            padding-right: 2.5rem !important;
         }
 
         html[data-theme="dark"] .form-control,
@@ -444,6 +462,20 @@
             background: rgba(15, 23, 42, 0.7);
             color: var(--sgaf-text);
             border-color: rgba(56, 189, 248, 0.3);
+        }
+
+        html[data-theme="dark"] .form-control::placeholder,
+        html[data-theme="dark"] .form-select::placeholder,
+        html[data-theme="dark"] textarea::placeholder {
+            color: #94a3b8 !important;
+            opacity: 1;
+        }
+
+        html[data-theme="dark"] .form-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23e2e8f0' d='M4.427 6.427a.75.75 0 0 1 1.06 0L8 9.14l2.513-2.713a.75.75 0 1 1 1.06 1.06L8.53 10.7a.75.75 0 0 1-1.06 0L4.427 7.487a.75.75 0 0 1 0-1.06Z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1rem;
         }
 
         html[data-theme="dark"] .table td,
@@ -566,7 +598,8 @@
                                             </button>
                                             <div id="docente-notas-menu" class="teacher-submenu">
                                                 <a href="{% url 'docente_registrar_nota' %}" class="{% if request.path == '/docente/registrar-nota/' %}active{% endif %}"><span class="sub-icon">•</span>Registrar Calificación</a>
-                                                <a href="{% url 'docente_historial_notas' %}" class="{% if request.path == '/docente/historial-notas/' %}active{% endif %}"><span class="sub-icon">•</span>Historial de Calificaciones</a>
+                                                <a href="{% url 'docente_historial_notas' %}?tipo=notas" class="{% if request.path == '/docente/historial-notas/' %}active{% endif %}"><span class="sub-icon">•</span>Historial de Notas</a>
+                                                <a href="{% url 'docente_historial_asistencia' %}?tipo=asistencia" class="{% if request.path == '/docente/historial-asistencia/' %}active{% endif %}"><span class="sub-icon">•</span>Historial de Asistencia</a>
                                             </div>
                                         </div>
                                     </li>
@@ -639,12 +672,14 @@
         (function () {
             const storedTheme = localStorage.getItem('sgaf-theme') || 'light';
             const applyTheme = function(theme) {
+                const isDark = theme === 'dark';
                 document.documentElement.setAttribute('data-theme', theme);
+                document.documentElement.classList.toggle('dark', isDark);
                 localStorage.setItem('sgaf-theme', theme);
                 const toggle = document.getElementById('theme-toggle');
                 if (toggle) {
-                    toggle.textContent = theme === 'dark' ? '☀️ Claro' : '🌙 Oscuro';
-                    toggle.setAttribute('aria-label', theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
+                    toggle.textContent = isDark ? '☀️ Claro' : '🌙 Oscuro';
+                    toggle.setAttribute('aria-label', isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
                 }
             };
             applyTheme(storedTheme);

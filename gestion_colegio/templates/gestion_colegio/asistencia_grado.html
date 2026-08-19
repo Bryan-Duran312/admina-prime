@@ -3,16 +3,96 @@
 {% block title %}SGAF - Asistencia por Grado{% endblock %}
 
 {% block content %}
+<style>
+    .grado-filter-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(148, 163, 184, 0.7) transparent;
+    }
+
+    .grado-filter-scroll::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .grado-filter-scroll::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.7);
+        border-radius: 999px;
+    }
+
+    .grado-filter-btn {
+        border-radius: 0.75rem;
+        padding: 0.45rem 0.9rem;
+        font-weight: 600;
+        line-height: 1.2;
+        white-space: nowrap;
+        border: 1px solid #cbd5e1;
+        background: transparent;
+        color: #475569;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .grado-filter-btn:hover {
+        background: #f1f5f9;
+        color: #0f172a;
+        text-decoration: none;
+    }
+
+    .grado-filter-btn.active {
+        background: #2563eb !important;
+        border-color: #2563eb !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+
+    .dark .grado-filter-btn {
+        border-color: rgba(148, 163, 184, 0.7);
+        color: #cbd5e1;
+    }
+
+    .dark .grado-filter-btn:hover {
+        background: rgba(15, 23, 42, 0.85);
+        color: #f8fafc;
+    }
+
+    .dark .grado-filter-btn.active {
+        background: #2563eb !important;
+        border-color: #2563eb !important;
+        color: #ffffff !important;
+    }
+
+    .dark .asistencia-radio-label {
+        color: #e2e8f0;
+    }
+
+    .dark .asistencia-radio-label input[type="radio"] {
+        accent-color: #60a5fa;
+    }
+
+    .dark .alert-success {
+        background: rgba(22, 163, 74, 0.18);
+        border-color: rgba(74, 222, 128, 0.4);
+        color: #dcfce7;
+    }
+
+    .dark .table,
+    .dark .table th,
+    .dark .table td,
+    .dark .table thead th,
+    .dark .table tbody + tbody {
+        color: #e2e8f0;
+    }
+</style>
+
 <div class="container py-4">
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
         <div>
             <h2 class="mb-1">Lista de Asistencia por Grado</h2>
             <p class="mb-0 text-muted">Registro del día para estudiantes activos del grado seleccionado.</p>
         </div>
-        <div class="d-flex flex-wrap gap-2">
-            {% for grado in grados_academicos %}
+        <div class="d-flex flex-wrap gap-2 align-items-center overflow-x-auto pb-2 grado-filter-scroll" style="max-width: 100%;">
+            {% for grado in grados_academicos|dictsort:"nombre" %}
                 <a href="{% url 'asistencia_grado' %}?grado={{ grado|urlencode }}"
-                   class="btn btn-sm {% if grado == grado_seleccionado %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                   class="grado-filter-btn btn btn-sm {% if grado == grado_seleccionado %}active{% endif %}">
                     {{ grado }}
                 </a>
             {% endfor %}
@@ -49,15 +129,15 @@
                             <td><span class="badge bg-primary-subtle text-primary">{{ estudiante.grado }}</span></td>
                             <td>
                                 <div class="d-flex flex-wrap gap-3">
-                                    <label class="d-flex align-items-center gap-2 mb-0">
+                                    <label class="d-flex align-items-center gap-2 mb-0 asistencia-radio-label">
                                         <input type="radio" name="estado_{{ estudiante.id }}" value="PRESENTE" checked>
                                         <span>Presente</span>
                                     </label>
-                                    <label class="d-flex align-items-center gap-2 mb-0">
+                                    <label class="d-flex align-items-center gap-2 mb-0 asistencia-radio-label">
                                         <input type="radio" name="estado_{{ estudiante.id }}" value="AUSENTE">
                                         <span>Ausente</span>
                                     </label>
-                                    <label class="d-flex align-items-center gap-2 mb-0">
+                                    <label class="d-flex align-items-center gap-2 mb-0 asistencia-radio-label">
                                         <input type="radio" name="estado_{{ estudiante.id }}" value="EXCUSA">
                                         <span>Excusa</span>
                                     </label>
@@ -74,7 +154,7 @@
             </div>
 
             {% if estudiantes %}
-            <div class="d-flex justify-content-end mt-3">
+            <div class="d-flex justify-content-end mt-4 pt-4 border-top border-slate-200 dark:border-slate-800">
                 <button type="submit" class="btn btn-primary">Guardar Asistencia del Día</button>
             </div>
             {% endif %}

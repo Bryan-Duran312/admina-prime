@@ -20,6 +20,7 @@ urlpatterns = [
     path('docente/', views.vista_dashboard_docente, name='dashboard_docente'),
     path('docente/registrar-nota/', views.vista_docente_registrar_nota, name='docente_registrar_nota'),
     path('docente/historial-notas/', views.vista_docente_historial_notas, name='docente_historial_notas'),
+    path('docente/historial-asistencia/', views.vista_docente_historial_asistencia, name='docente_historial_asistencia'),
     path('registrar-pago/', views.vista_registrar_pago, name='registrar_pago'),
     path('registrar-nota/', views.vista_registrar_nota, name='registrar_nota'),
     path('reportes/', views.vista_reportes_director, name='reportes_director'),

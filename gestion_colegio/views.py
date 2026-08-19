@@ -4,9 +4,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.core.exceptions import PermissionDenied
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.http import JsonResponse
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from .models import Estudiante, Pago, Nota, HistorialModificacion, Asistencia, Grado
 
 
@@ -264,15 +264,112 @@ def vista_docente_historial_notas(request):
         messages.warning(request, 'El historial de notas es exclusivo del personal docente.')
         return redirect('panel_inicio')
 
-    mis_notas = _get_queryset_notas_docente(request.user)
     grados_academicos = Grado.objects.filter(activo=True).order_by('nombre')
+    tipo = (request.GET.get('tipo') or 'notas').lower()
+    grado_id = request.GET.get('grado')
+    nombre_filter = (request.GET.get('nombre') or '').strip()
+    fecha_inicio = request.GET.get('fecha_inicio') or ''
+    fecha_fin = request.GET.get('fecha_fin') or ''
+    periodo = request.GET.get('periodo') or 'personalizado'
+
+    if periodo == '7d':
+        fecha_fin = date.today().strftime('%Y-%m-%d')
+        fecha_inicio = (date.today() - timedelta(days=7)).strftime('%Y-%m-%d')
+    elif periodo == '30d':
+        fecha_fin = date.today().strftime('%Y-%m-%d')
+        fecha_inicio = (date.today() - timedelta(days=30)).strftime('%Y-%m-%d')
+    elif periodo == '90d':
+        fecha_fin = date.today().strftime('%Y-%m-%d')
+        fecha_inicio = (date.today() - timedelta(days=90)).strftime('%Y-%m-%d')
+    elif periodo == 'semestre':
+        fecha_fin = date.today().strftime('%Y-%m-%d')
+        fecha_inicio = (date.today() - timedelta(days=180)).strftime('%Y-%m-%d')
+
+    notas_qs = Nota.objects.filter(profesor_que_registro=request.user).select_related('estudiante__grado')
+    asistencia_qs = Asistencia.objects.filter(registrado_por=request.user).select_related('estudiante')
+
+    if grado_id:
+        grado_obj = grados_academicos.filter(id=grado_id).first()
+        if grado_obj:
+            notas_qs = notas_qs.filter(estudiante__grado=grado_obj)
+            asistencia_qs = asistencia_qs.filter(grado=grado_obj.nombre)
+
+    if nombre_filter:
+        notas_qs = notas_qs.filter(
+            Q(estudiante__nombre__icontains=nombre_filter) |
+            Q(estudiante__apellido__icontains=nombre_filter)
+        )
+        asistencia_qs = asistencia_qs.filter(
+            Q(estudiante__nombre__icontains=nombre_filter) |
+            Q(estudiante__apellido__icontains=nombre_filter)
+        )
+
+    if fecha_inicio:
+        notas_qs = notas_qs.filter(fecha_registro__date__gte=fecha_inicio)
+        asistencia_qs = asistencia_qs.filter(fecha__gte=fecha_inicio)
+    if fecha_fin:
+        notas_qs = notas_qs.filter(fecha_registro__date__lte=fecha_fin)
+        asistencia_qs = asistencia_qs.filter(fecha__lte=fecha_fin)
+
+    if tipo == 'asistencia':
+        notas_qs = Nota.objects.none()
+    elif tipo == 'notas':
+        asistencia_qs = Asistencia.objects.none()
+
+    historial = []
+    for nota in notas_qs.order_by('estudiante__nombre', 'estudiante__apellido', '-fecha_registro'):
+        historial.append({
+            'tipo': 'nota',
+            'id': nota.id,
+            'estudiante': nota.estudiante,
+            'grado': nota.estudiante.grado.nombre if nota.estudiante.grado else 'Sin grado',
+            'materia_actividad': nota.materia,
+            'valor': str(nota.valor_nota),
+            'fecha': nota.fecha_registro,
+            'accion': 'Corregir',
+            'url_editar': f"/editar-nota/{nota.id}/",
+        })
+
+    for asistencia in asistencia_qs.order_by('estudiante__nombre', 'estudiante__apellido', '-fecha'):
+        historial.append({
+            'tipo': 'asistencia',
+            'id': asistencia.id,
+            'estudiante': asistencia.estudiante,
+            'grado': asistencia.grado or (asistencia.estudiante.grado.nombre if asistencia.estudiante.grado else 'Sin grado'),
+            'materia_actividad': 'Asistencia diaria',
+            'valor': asistencia.get_estado_display(),
+            'fecha': asistencia.fecha,
+            'accion': 'Ver',
+            'url_editar': '#',
+        })
+
+    historial.sort(key=lambda item: (item['estudiante'].nombre.lower(), item['estudiante'].apellido.lower(), item['fecha']))
 
     return render(request, 'gestion_colegio/docente_historial_notas.html', {
-        'mis_notas': mis_notas,
+        'historial': historial,
+        'tipo': tipo,
         'user_rol': rol,
         'grados_academicos': grados_academicos,
-        'grado_seleccionado': grados_academicos.first().nombre if grados_academicos.exists() else '',
+        'grado_seleccionado': grados_academicos.filter(id=grado_id).first().nombre if grado_id and grados_academicos.filter(id=grado_id).exists() else '',
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+        'nombre_busqueda': nombre_filter,
+        'periodo': periodo,
     })
+
+
+def vista_docente_historial_asistencia(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    rol = get_user_rol(request.user)
+    if rol != 'PROFESOR':
+        messages.warning(request, 'El historial de asistencia es exclusivo del personal docente.')
+        return redirect('panel_inicio')
+
+    request.GET = request.GET.copy()
+    request.GET['tipo'] = 'asistencia'
+    return vista_docente_historial_notas(request)
 
 
 def vista_reportes_director(request):
